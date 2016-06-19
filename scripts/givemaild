@@ -1,0 +1,124 @@
+#!/bin/bash
+#
+# givemail	This shell script takes care of starting and stopping givemaild.
+#
+# chkconfig: - 70 36
+# description:	GiveMail daemon.
+# processname:	givemaild
+# config:	/etc/givemail/conf.d/givemail.conf
+# pidfile:	/var/run/givemaild/givemaild.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+prog="GiveMail"
+
+myconfdir="/etc/givemail/conf.d"
+mylogdir="/var/log/"
+mypidfile="/var/run/givemail/givemaild.pid"
+
+gettag(){
+	FIELD=`grep "<$1>" $2 |sed -e "s/<$1>\(.*\)<\/$1>/\1/g"|tr -d "[:space:]"`
+}
+
+start(){
+	for myconffile in `ls $myconfdir/*.conf`
+	do
+		# Get some fields from the configuration file
+		gettag databasename $myconffile
+		DB_NAME=$FIELD
+		gettag hostname $myconffile
+		HOST_NAME=$FIELD
+		
+		# Prepare the log file
+		mylogfile="$mylogdir/givemaild-$DB_NAME-$HOST_NAME.log"
+		touch "$mylogfile"
+		chmod 0640 "$mylogfile"
+		[ -x /sbin/restorecon ] && /sbin/restorecon "$mylogfile"
+
+		# Pass all the options determined above, to ensure consistent behaviour.
+		/usr/bin/givemaild --restart-slaves --configuration-file $myconffile \
+			--log-file $mylogfile >/dev/null 2>&1 &
+		ret=$?
+		if [ $ret -eq 0 ]; then
+		    touch /var/lock/subsys/givemaild
+	            action $"Starting $prog on $DB_NAME@$HOST_NAME: " /bin/true
+		else
+	    	    action $"Starting $prog on $DB_NAME@$HOST_NAME: " /bin/false
+		fi
+	done
+	# Give it a sec to fork and daemonize
+	sleep 1
+	[ -x /sbin/pidof ] && /sbin/pidof givemaild >$mypidfile
+	return $ret
+}
+
+stop(){
+        GIVEMAILPIDS=`cat "$mypidfile"  2>/dev/null`
+        if [ -n "$GIVEMAILPIDS" ]; then
+		for GIVEMAILPID in $GIVEMAILPIDS
+		do
+			/bin/kill "$GIVEMAILPID" >/dev/null 2>&1
+			ret=$?
+			if [ $ret -eq 0 ]; then
+				STOPTIMEOUT=60
+				while [ $STOPTIMEOUT -gt 0 ]
+				do
+					/bin/kill -0 "$GIVEMAILPID" >/dev/null 2>&1 || break
+					sleep 1
+					let STOPTIMEOUT=${STOPTIMEOUT}-1
+				done
+				if [ $STOPTIMEOUT -eq 0 ]; then
+					echo "Timeout error occurred trying to stop $prog."
+					ret=1
+					action $"Stopping $prog: " /bin/false
+				else
+					rm -f /var/lock/subsys/givemaild
+					action $"Stopping $prog: " /bin/true
+				fi
+			else
+				action $"Stopping $prog: " /bin/false
+			fi
+		done
+	else
+		ret=1
+		action $"Stopping $prog: " /bin/false
+	fi
+        return $ret
+}
+ 
+restart(){
+	stop
+	start
+}
+
+condrestart(){
+	[ -e /var/lock/subsys/givemaild ] && restart || :
+}
+
+# See how we were called.
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	status)
+		status givemaild 
+		;;
+	restart)
+		restart
+		;;
+	condrestart)
+		condrestart
+		;;
+	*)
+		echo $"Usage: $0 {start|stop|status|condrestart|restart}"
+		exit 1
+esac
+
+exit $?

@@ -1,0 +1,61 @@
+
+Done :
+------
+
+General
+- MX and A records resolution
+- records caching and expiry check
+- support for Delivery Status Notification and Message Disposition Notification
+- per-server message throttling
+- customized headers
+- support for base64-encoded attachments
+- personalization of text, links and images in message text
+- don't send multiparts emails if only one content type is provided
+- encode content to Quoted-Printable spec (RFC 1521)
+- sign with DomainKeys
+- deal with situations when emails are personalized (1 session, N messages of 1 recipient)
+  or not (1 session, 1 message of N recipients)
+- support for multiple attachments
+- spam check mode to run the message against spamassassin and return its ratings
+- when substituting in HTML, escape entities
+- all programs support a SMTP relay, with authentication
+- temporarily-failed recipients are retried automatically
+- timesent and numattempts are set for each recipient
+- support for HTML image embedding
+
+XML over HTTP API
+- create, list and delete campaigns and recipients
+- solid authentication support
+- check Status is a valid value
+- requests reissued within a minute for the same key are rejected 
+
+Still to do :
+-------------
+
+Core
+- allow binding to a specific interface
+
+General
+- internationalize messages
+- wrap spam verdicts in XML
+- givemail and csv2givemail have a lot in common, yet don't share much
+- move slave code out of givemail to givemail-slave
+- add substitution variables for day, month and year, with arithmetic operations support
+- DKIM support with http://libdkim.sourceforge.net/
+- move attachment pattern matching out of csv2givemail, this would be useful to givemail too; right now the pattern is hardcoded to "*blah-*".
+- endofcampaign could simply be an URL to GET or POST to since givemail has a dependency on curl/neon
+- reload on SIGHUP
+- allow specifying the port number when calling givemail in -x mode
+- abort if any XML input file isn't valid
+
+Unicode support
+- all user interfaces to only take UTF-8 in
+
+XML over HTTP API
+- allow uploading files that can later be used as email attachments
+- check the type and range of all fields
+
+DB
+- allow using one or another DB backend
+- make sure all fields used to build SQL statements are escaped and/or checked
+

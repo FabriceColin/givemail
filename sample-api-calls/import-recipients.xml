@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GiveMail>
+	<Import Objects="Recipients" SkipHeader="1" Name="0" EmailAddress="1" Status="2">
+		<Campaign>
+			<Id>1007</Id>
+		</Campaign>
+		<Content><![CDATA[NAME,EMAILADDRESS,STATUS
+Some One,some.one@gmail.com,Waiting
+Some Body,some.body@hotmail.com,Failed]]></Content>
+	</Import>
+</GiveMail>

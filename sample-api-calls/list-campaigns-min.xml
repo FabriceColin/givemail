@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GiveMail>
+	<List Objects="Campaigns" DetailsLevel="Min" MaxCount="10" StartOffset="0"/>
+</GiveMail>

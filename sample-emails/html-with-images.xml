@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<email>
+<subject>Test with images in HTML</subject>
+<from>
+	<name>Fabrice Colin</name>
+	<emailaddress>fabrice.colin@example.com</emailaddress>
+</from>
+<replyto>
+	<name>Fabrice Colin</name>
+	<emailaddress>fabrice.colin@example.com</emailaddress>
+</replyto>
+<sender>fabrice.colin</sender>
+<html><![CDATA[
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<TITLE>Test</TITLE>
+<META http-equiv="Content-Type content="text/html; charset=UTF-8">
+</HEAD>
+<BODY>
+This is <IMG SRC="cid:pic001" ALT="a test">
+This is <IMG SRC="cid:pic002" ALT="another test">
+</BODY>
+</HTML>]]></html>
+<attachment type="image/png" id="pic001" checkhtml="YES">
+	<filename>pic001.png</filename>
+</attachment>
+<attachment type="image/png" id="pic002" checkhtml="YES">
+	<filename>pic002.png</filename>
+</attachment>
+<attachment>
+	<filename>a.txt</filename>
+	<content>This is a simple attachment</content>
+</attachment>
+</email>

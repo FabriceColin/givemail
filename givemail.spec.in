@@ -1,0 +1,140 @@
+%define has_dynamic_libresolv %(test -e %{_libdir}/libresolv.so && echo 1 || echo 0)
+
+# @configure_input@
+Summary:	A mass email sender
+Name:		@PACKAGE@
+Version:	@VERSION@
+Release:	1%{?dist}
+License:	LGPL
+Group:		System Environment/Daemons
+Source0:	%{name}-%{version}.tar.gz
+Source1:	libdomainkeys-0.69.tar.gz
+URL:		http://code.google.com/p/givemail/
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+%if 0%{?_with_libetpan:1}
+Requires:	libetpan >= 1.0
+Requires:	cyrus-sasl-lib, cyrus-sasl-md5, cyrus-sasl-plain
+%else
+Requires:	libesmtp >= 1.0.6
+%endif
+%if 0%{?_with_mysql4:1}
+Requires:	MySQL-shared >= 4.0
+BuildRequires:	MySQL-devel >= 4.0
+%else
+Requires:	mysql-libs >= 5.0
+BuildRequires:	mysql-devel >= 5.0
+%endif
+%if %has_dynamic_libresolv
+Requires:	%{_libdir}/libresolv.so
+%endif
+%if 0%{?_with_libetpan:1}
+BuildRequires:	libetpan-devel >= 1.0
+%else
+BuildRequires:	libesmtp-devel >= 1.0.6
+%endif
+%if 0%{?_with_webapi:1}
+BuildRequires:	fcgi-devel
+%endif
+Requires:	ctemplate >= 0.95
+BuildRequires:	ctemplate-devel >= 0.95, curl-devel, openssl-devel >= 0.9.7
+BuildRequires:	gcc-c++, doxygen
+
+%description
+GiveMail sends emails out en masse. It is not an MTA.
+MySQL may be used to spool messages.
+
+%if 0%{?_with_webapi:1}
+%package webapi
+Summary:	A WebAPI for mass email sending
+Group:		System Environment/Daemons
+Requires:	%{name} = %{version}
+Requires:	mod_fcgid
+Requires:	openssl >= 0.9.7
+Requires:	SmartClient >= 7.0
+%if 0%{?_with_mysql4:1}
+Requires:	curl
+%else
+Requires:	libcurl
+%endif
+
+%description webapi
+This package includes the GiveMail WebAPI.
+%endif
+
+%prep
+%setup -q -a 1
+
+%build
+%if %has_dynamic_libresolv
+pushd libdomainkeys-0.69 && echo %{_libdir}/libresolv.so >dns.lib && make && popd
+%else
+pushd libdomainkeys-0.69 && echo %{_libdir}/libresolv.a >dns.lib && make && popd
+%endif
+%configure %{?_with_debug:--enable-debug=yes} %{?_with_webapi:--enable-fastcgi=yes} %{?_with_libetpan:--enable-libetpan=yes --enable-libesmtp=no} --with-libdomainkeys=$PWD/libdomainkeys-0.69
+make
+make documentation
+
+%install
+[ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && /bin/rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
+/bin/rm -f ${RPM_BUILD_ROOT}%{_libdir}/libgivemail.so ${RPM_BUILD_ROOT}%{_libdir}/libgivemail.la
+
+%post
+if [ $1 = 1 ]; then
+    /sbin/chkconfig --add givemaild
+fi
+
+%if 0%{?_with_webapi:1}
+%post webapi
+# SELinux support
+chcon -t httpd_sys_script_exec_t %{_localstatedir}/www/cgi-bin/webapi.fcgi 2> /dev/null || :
+%endif
+
+%preun
+if [ $1 = 0 ]; then
+    /sbin/chkconfig --del givemaild
+fi
+
+%postun
+if [ $1 -ge 1 ]; then
+    /sbin/service givemaild condrestart >/dev/null 2>&1 || :
+fi
+
+%if 0%{?_with_webapi:1}
+%postun webapi
+# SELinux support
+if [ $1 -eq 0 ]; then
+    # Final removal
+    semanage fcontext -d -t httpd_sys_script_exec_t %{_localstatedir}/www/cgi-bin/webapi.fcgi 2>/dev/null || :
+fi
+%endif
+
+%clean
+[ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && /bin/rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-, root, root, -)
+%doc AUTHORS ChangeLog COPYING.LIB NEWS README TODO docs/html
+%config(noreplace) %{_sysconfdir}/givemail
+%config(noreplace) %{_sysconfdir}/logrotate.d/givemaild
+%{_sysconfdir}/rc.d/init.d/givemaild
+%{_bindir}/givemaild
+%{_bindir}/givemail
+%{_bindir}/csv2givemail
+%{_libdir}/libgivemail.so.*
+%{_datadir}/givemail/sample-emails
+%{_mandir}/man1/givemail*
+%{_mandir}/man1/csv2givemail*
+%attr(0755,root,root) %{_localstatedir}/run/givemail
+
+%if 0%{?_with_webapi:1}
+%files webapi
+%defattr(-, root, root, -)
+%{_bindir}/webapi-key-manager
+%{_datadir}/givemail/sample-api-calls
+%{_mandir}/man1/webapi-key-manager*
+%{_localstatedir}/www/cgi-bin/webapi.fcgi
+%endif
+
+%changelog
+

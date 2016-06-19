@@ -1,0 +1,10 @@
+PKG=GSIgivemail
+NAME=givemail
+ARCH="sparc"
+VERSION=1.0
+CATEGORY=utility
+VENDOR=Global Sign.In
+EMAIL=veemal@globalsignin.com
+PSTAMP=Veemal Gungadin
+BASEDIR="/"
+CLASSES=none

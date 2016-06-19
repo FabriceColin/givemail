@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GiveMail>
+	<Set>
+		<Campaign>
+			<Id>1002</Id>
+			<Status>Ready</Status>
+		</Campaign>
+	</Set>
+</GiveMail>

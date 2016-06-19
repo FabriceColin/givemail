@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GiveMail>
+	<Set>
+		<Recipient>
+			<Id>25</Id>
+			<Name>fabrice</Name>
+			<Status>Sent</Status>
+			<StatusCode>0</StatusCode>
+			<StatusString>0</StatusString>
+			<EmailAddress>fabrice@somewhere.com</EmailAddress>
+			<CustomField1>A</CustomField1>
+			<CustomField2>B</CustomField2>
+			<CustomField3>C</CustomField3>
+			<CustomField4>D</CustomField4>
+			<CustomField5>E</CustomField5>
+			<CustomField6>F</CustomField6>
+			<ReturnPath>bounce@example.com</ReturnPath>
+		</Recipient>
+	</Set>
+</GiveMail>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GiveMail>
+	<Delete>
+		<Campaign>
+			<Id>1002</Id>
+		</Campaign>
+	</Delete>
+</GiveMail>

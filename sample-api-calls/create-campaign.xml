@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GiveMail>
+	<Create>
+		<Campaign>
+			<Id>123_ignored_456</Id>
+			<Name>Test Campaign</Name>
+			<Message>
+				<Subject>This is a test</Subject>
+				<FromName>Me</FromName>
+				<FromEmailAddress>me@example.com</FromEmailAddress>
+				<ReplyToName>Me</ReplyToName>
+				<ReplyToEmailAddress>me@example.com</ReplyToEmailAddress>
+				<SenderEmailAddress>me@example.com</SenderEmailAddress>
+				<UnsubscribeLink>http://www.example.com/unsubscribe.php</UnsubscribeLink>
+			</Message>
+		</Campaign>
+	</Create>
+</GiveMail>

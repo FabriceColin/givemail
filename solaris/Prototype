@@ -1,0 +1,7 @@
+i pkginfo
+i checkinstall
+d none /usr 0755 root bin
+d none /usr/bin 0755 root bin
+d none /usr/bin/givemail 0755 root sys
+d none /usr/bin/givemaild 0755 root sys
+d none /usr/bin/csv2givemail 0755 root sys

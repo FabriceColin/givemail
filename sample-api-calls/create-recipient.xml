@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GiveMail>
+	<Create>
+		<Campaign>
+			<Id>1002</Id>
+		</Campaign>
+		<Recipient>
+			<Id>123_ignored_456</Id>
+			<Name>Krusty Klown</Name>
+			<EmailAddress>krusty@klowns.com</EmailAddress>
+			<CustomField0>Ignored Custom Field Index</CustomField0>
+			<CustomField1>AAA</CustomField1>
+			<CustomField2>BBB</CustomField2>
+			<CustomField3>CCC</CustomField3>
+			<CustomField4>DDD</CustomField4>
+			<CustomField5>EEE</CustomField5>
+			<CustomField6>FFF</CustomField6>
+			<ReturnPath>bounce@example.com</ReturnPath>
+		</Recipient>
+	</Create>
+</GiveMail>

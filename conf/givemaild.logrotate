@@ -1,0 +1,8 @@
+/var/log/givemail-slave*.log {
+    weekly
+    rotate 0
+    missingok
+    sharedscripts
+#    postrotate
+#    endscript
+}

@@ -1,0 +1,11 @@
+
+Copyright 2008 Global Sign In 
+Copyright 2009-2011 Fabrice Colin
+
+Some code in Base64.cc is based on base64.c, Copyright 2005 Nokia Corporation,
+from the Sofia-SIP package.
+
+Some code in QuotedPrintable.cc is based on filter_trans.c, Copyright 1999,
+2000, 2001, 2004, 2005, 2007 Free Software Foundation, Inc. from the GNU
+Mailutils package.
+

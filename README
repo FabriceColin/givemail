@@ -1,0 +1,127 @@
+Givemail
+Copyright 2008 Global Sign In
+Copyright 2009-2014 Fabrice Colin
+Base64.cc includes code Copyright 2005 Nokia Corporation.
+QuotedPrintable.cc includes code Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007 Free Software Foundation, Inc.
+
+
+Dependencies
+------------
+
+The following packages are required:
+
+ctemplate			>= 0.95		http://code.google.com/p/google-ctemplate/
+libdomainkeys			>= 0.69		http://domainkeys.sourceforge.net/
+MySQL				>= 4.0		http://www.mysql.com/
+mod_fcgid			>= 2.2		http://fastcgi.coremail.cn/
+OpenSSL				>= 0.9.7	http://www.openssl.org/
+doxygen						http://www.stack.nl/~dimitri/doxygen/index.html
+help2man					http://www.gnu.org/software/help2man
+autotools and g++ toolchain
+
+as well as one of the following:
+
+libetpan			>= 1.1		http://www.etpan.org/
+libesmtp			>= 1.0.6	http://www.stafford.uklinux.net/libesmtp/
+
+Building Givemail
+-----------------
+
+From the source repository :
+1. Check out the source code
+2. Generate configure and the initial make files
+   For instance :
+   $ ./autogen.sh --prefix=/usr --libdir=/usr/lib64 --enable-debug=yes \
+     --enable-libetpan=yes --with-libdomainkeys=/path/to/libdomainkeys-0.69
+   Append "--enable-fastcgi=yes" to add support for FastCGI and build the WebAPI.
+3. Run make
+
+From a source tarball :
+1. Untar the source code
+2. Run configure
+   For instance :
+   $ ./configure --prefix=/usr --libdir=/usr/lib64 --enable-debug=yes \
+     --enable-libetpan=yes --with-libdomainkeys=/path/to/libdomainkeys-0.69
+3. Run make
+
+
+Installing Givemail
+-------------------
+
+After building from source, run :
+   $ make install
+
+or generate a source tarball of the current code, and build RPMs with :
+   $ make dist
+   $ cp /path/to/libdomainkeys-0.69.tar.gz /path/to/rpmtree/SOURCES
+   $ rpmbuild -ts givemail-version_number.tar.gz
+   $ rpmbuild --rebuild /path/to/rpmtree/SRPMS/givemail-version_number.distro.src.rpm
+   Append "--with mysql4" to calls to rpmbuild if you are on RHEL or a derivative (eg Centos).
+   Append "--with debug" to enable DEBUG mode, and "--with fastcgi" to build the WebAPI.
+
+Make sure the givemail service is stopped, you configuration backed up and install the RPMs with :
+   $ rpm -Uvh /path/to/rpmtree/RPMS/givemail-*
+   If this complains about a failed dependency on libc.so.6(GLIBC_PRIVATE), use "--nodeps".
+
+Then restore your configuration and restart the service.
+
+Configuring Givemail
+--------------------
+
+The service script will start an instance of givemaild for each .conf file found
+in the directory "/etc/givemail/conf.d". For each database to be served by
+givemaild, create a new .conf file and edit the database block :
+
+<?xml version="1.0" encoding="utf-8"?>
+<givemail>
+	<database>
+		<hostname>example.com</hostname>
+		<databasename>MyGiveMailDB</databasename>
+		<username>toto</username>
+		<password>titi</password>
+	</database>
+	...
+</givemail>
+
+
+Miscellaneous
+-------------
+
+To generate the doxygen documentation, run :
+   $ make documentation
+
+To generate the manual pages, run :
+   $ make manuals
+
+To test the engine, run :
+   $ givemail --conf /path/to/givemail.conf --xml-file /path/to/sample-emails/test.xml mailinator.com bozotheclown@mailinator.com Bozo
+
+To enable debugging (libetpan only), run :
+   $ export GIVEMAIL_DEBUG=Y
+
+To disable sending of any message, run :
+   $ export GIVEMAIL_DONT_SEND=Y
+
+To protect libesmtp sessions with a mutex, run :
+   $ export GIVEMAIL_MUTEX_SESSIONS=Y
+
+To specify a SMTP relay, run :
+   $ export GIVEMAIL_RELAY_ADDRESS=smtp.mydomain.com
+   $ export GIVEMAIL_RELAY_PORT=25
+   $ export GIVEMAIL_RELAY_STARTTLS=Y|N
+   $ export GIVEMAIL_RELAY_INTERNAL_DOMAIN=mydomain.com
+   $ export GIVEMAIL_RELAY_USER_NAME=username
+   $ export GIVEMAIL_RELAY_PASSWORD=password
+
+To sign a message prior to posting to the WebAPI, run :
+   $ webapi-key-manager --conf /path/to/givemail.conf --sign /path/to/sample-api-calls/list-campaigns.xml 1a60838a-7c5c-102b-af7a-0030485eff82
+and follow the instructions given by webapi-key-manager.
+
+To test the WebAPI on the command line, run :
+   $ export WEBAPI_NO_FCGI=Y
+   $ webapi.fcgi < /path/to/sample-api-calls/list-campaigns.xml
+
+To override the configuration file to be used by the WebAPI, edit /etc/httpd/conf.d/fcgid.conf and add :
+   DefaultInitEnv WEBAPI_CONFIGURATION_FILE /path/to/givemail.conf
+then restart httpd.
+

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GiveMail>
+	<List Objects="Recipients" DetailsLevel="Full" MaxCount="10" StartOffset="0">
+		<Campaign>
+			<Id>1002</Id>
+		</Campaign>
+	</List>
+</GiveMail>

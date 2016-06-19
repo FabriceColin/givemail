@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GiveMail>
+	<Import Objects="Recipients" SourceCampaignId="1014" RecipientsStatus="Waiting">
+		<Campaign>
+			<Id>1008</Id>
+		</Campaign>
+	</Import>
+</GiveMail>

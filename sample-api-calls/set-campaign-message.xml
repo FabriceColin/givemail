@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GiveMail>
+	<Set>
+		<Campaign>
+			<Id>1002</Id>
+			<Message>
+				<Subject>This is a test</Subject>
+				<FromName>Me</FromName>
+				<FromEmailAddress>me@example.com</FromEmailAddress>
+				<ReplyToName>Me</ReplyToName>
+				<ReplyToEmailAddress>me@example.com</ReplyToEmailAddress>
+				<SenderEmailAddress>me@example.com</SenderEmailAddress>
+				<PlainContent><![CDATA[Hello {Name},
+This is a test]]></PlainContent>
+				<HtmlContent><![CDATA[<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<TITLE>Test</TITLE>
+<META http-equiv="Content-Type content="text/html; charset=UTF-8">
+</HEAD>
+<BODY>
+Hello {Name},
+This is <b>a test</b>
+</BODY>
+</HTML>]]></HtmlContent>
+				<UnsubscribeLink>http://www.example.com/unsubscribe.php</UnsubscribeLink>
+			</Message>
+		</Campaign>
+	</Set>
+</GiveMail>

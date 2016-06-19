@@ -1,0 +1,148 @@
+2015/08/02 1.20
+* General
+  XML input files may specify useragent/xmailer. The XML document's encoding
+  is used as the charset of all message parts.
+
+* libetpan backend
+  Initial support for generation of read receipts and delivery notifications.
+  Fixed build against libetpan v1.6 and v1.0.
+  Fixed some memory leaks.
+
+2014/05/19 1.11
+* General
+  No suffix is appended to message IDs passed with -m.
+  Content and attachments' default encoding may be overriden in XML input.
+  Copes with older libetpan releases that don't support NTLM and GSSAPI.
+  Fixed file sizes and offsets to use off_t.
+
+2012/11/29 1.10
+* General
+  Require ctemplate.
+  XML input files loaded with givemail -x that advertise version 2 may use ctemplate
+  markers and sections.
+
+* libetpan backend
+  Enable libetpan mail stream debugging if GIVEMAIL_DEBUG=Y.
+  On authentication errors, set recipients status to -2.
+  If an error occurs, get the SASL error message.
+  Fixed embedding of text and HTML parts with file attachments.
+  Prefer LOGIN and PLAIN to MD5 auth methods.
+  Always set a Date header.
+
+2011/12/07 1.06
+* General
+  If master/msgidsuffix isn't in the configuration file, it defaults to "@hostname".
+
+* libetpan backend
+  SMTP authentication with NTLM.
+  Fixed QP-encoding.
+
+* givemail
+  Option -d/--dump-file instructs givemail to write to disk the plain text and
+  HTML parts of messages loaded with -x/--xml-file, as sent to recipients. Files
+  are keyed by message ID, with extension txt or html.
+  Message IDs are saved to the status file.
+
+2011/07/03 1.05
+* General
+  ltmain.sh supports --as-needed.
+  In the configuration file, master/sendersuffix and slave/smtpprovider were obsoleted.
+  Refactored code to bundle the mail sending core in a dynamic library.
+
+* libetpan backend
+  QP-encoding of non-ASCII characters applies to separate words, not whole strings.
+  Catch SASL authentication errors, prefer MD5 methods to PLAIN, PLAIN to LOGIN.
+
+* SMTP
+  Allow setting the mail relay as a hostname or an IP address.
+  Inline attachments may be skipped if not referenced within the HTML content.
+  
+* csv2givemail
+  Don't complain if there is no file name pattern to match.
+
+* givemail
+  The file pointed to by -x may specify a To, regardless of the recipients list.
+  Custom fields may have any name.
+  The -f option was fixed.
+
+* givemaild
+  Dropped the unloved legacy DB schema (new schema not stabilized).
+
+* WebAPI
+  When importing a CSV, some fields may span several columns.
+  Trim spaces around email addresses.
+  Allow more recipient properties to be imported.
+
+2010/05/11 1.04
+* SMTP
+  In the configuration file, relay/server was dropped and replaced with relay/address and relay/port.
+  The environment variable GIVEMAIL_RELAY_SERVER is obsolete. Use GIVEMAIL_RELAY_ADDRESS and GIVEMAIL_RELAY_PORT.
+
+2010/03/10 1.03
+* SMTP
+  DSN can be activated by setting slave/dsnnotify in the configuration file.
+
+* libetpan backend
+  Names with non-ASCII characters are QP-encoded, assumed to be UTF-8.
+  Fixed handling of email address lists.
+  Fixed session shutdown.
+
+* givemail
+  Recipients' SMTP statuses can be saved to the file specified with -t/--status-file.
+  In -x/--xml-file mode, a CC header may be specified.
+
+2009/12/13 1.02
+* SMTP
+  All code that depends on libesmtp was moved to a backend.
+  A new backend based on libetpan is available.
+  It's possible to have attachments inline within the HTML content.
+  SMTP relay information can be provided through environment variables (GIVEMAIL_RELAY_*).
+  Subject, From, Reply-To, Sender and Resent-From can have substitution fields.
+  The number of substitution fields isn't artificially limited to 6 any longer.
+
+* libetpan backend
+  STARTTLS can be enabled when sending through the relay.
+
+* givemail
+  When run with the -x parameter, the message ID can be set with -m. Replies can be generated with -e.
+
+2009/09/08 1.01
+* General
+  The database schema changed. The recipients table has a timesent and a numattempts column.
+  All items in the configuration file are documented.
+  Fixed issues reported by gcc 4.4.
+
+* SMTP
+  Authentication against the SMTP relay is supported. Username and password can be set in givemail.conf.
+  DSN was activated.
+  Substitution fields in the display name part of From are supported.
+
+* csv2givemail
+  It looks for CCs in the column immediately behind the To recipients' column, and for BCCs in the column that follows.
+  If -b/--base-directory isn't set, it defaults to the current working directory.
+
+* givemail
+  The SMTP relay configured in givemail.conf is taken in consideration when run in slave mode.
+  When run with the -x parameter, values of substitution fields can be set on the command-line, or via another file passed with the -f parameter.
+
+* givemaild
+  The daemon tries to keep to a minimum the number of recipients that failed with the libesmtp error "Invalid API function argument". The root cause of this error has not been identified yet.
+  Every hour or so, it looks for campaigns with temporarily failed recipients, between one and three days old, and reactivates those campaigns.
+
+* WebAPI
+  It returns and can set most properties on campaigns and recipients.
+  Recipients can be imported from a CSV file (name, address, status), or from another campaign.
+  Campaigns lists of recipients can be exported to CSV.
+  Recipients' status can be updated en masse.
+  Lists of campaigns and recipients can be obtained with simple GET requests.
+  It can return lists of objects changed since a given time.
+  Duplicate recipients cannot be added.
+  The authentication scheme relies on cookies.
+  Hosts for which authentication can be skipped are defined in the configuration file.
+  The new XML schema is not fully compatible with that of 1.0.
+
+* Miscellaneous
+  A logrotate configuration file deletes slave logs weekly.
+  All programs look for /etc/givemail/conf.d/givemail.conf by default.
+
+2009/06/01 1.0 - Initial release

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GiveMail>
+	<Set>
+		<Campaign>
+			<Id>1008</Id>
+		</Campaign>
+		<Recipient CurrentStatus="Failed">
+			<Status>Waiting</Status>
+		</Recipient>
+	</Set>
+</GiveMail>
