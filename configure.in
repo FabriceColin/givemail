@@ -1,0 +1,334 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_PREREQ(2.50)
+AC_INIT(givemail, 1.20)
+
+AM_INIT_AUTOMAKE
+AM_CONFIG_HEADER(config.h)
+AC_PREFIX_DEFAULT(/usr)
+
+dnl Check for programs
+AC_ISC_POSIX
+AC_PROG_CC
+AM_PROG_CC_STDC
+AC_HEADER_STDC
+AC_PROG_CPP
+AC_PROG_CXX
+AC_PROG_CXXCPP
+AC_PROG_LIBTOOL
+
+dnl gettext support
+GETTEXT_PACKAGE=givemail
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
+                [the gettext domain])
+
+dnl Add the languages which your application supports here.
+ALL_LINGUAS=""
+#AM_GNU_GETTEXT([external]) 
+AM_GLIB_GNU_GETTEXT
+
+dnl Set PACKAGE_LOCALE_DIR in config.h.
+if test "x${prefix}" = "xNONE"; then
+  AC_DEFINE_UNQUOTED(PACKAGE_LOCALE_DIR, "${ac_default_prefix}/${DATADIRNAME}/locale",
+                [Define to the location of locale files.])
+else
+  AC_DEFINE_UNQUOTED(PACKAGE_LOCALE_DIR, "${prefix}/${DATADIRNAME}/locale",
+                [Define to the location of locale files.])
+fi
+dnl And set PREFIX in config.h.
+if test "x${prefix}" = "xNONE"; then
+  AC_DEFINE_UNQUOTED(PREFIX, "${ac_default_prefix}",
+                [Define to the package prefix.])
+else
+  AC_DEFINE_UNQUOTED(PREFIX, "${prefix}",
+                [Define to the package prefix.])
+fi
+
+AS_AC_EXPAND(DATADIR, $datadir)
+AS_AC_EXPAND(BINDIR, $bindir)
+
+dnl Location of system directories
+AS_AC_EXPAND(SYSCONFDIR, $sysconfdir)
+AC_DEFINE_UNQUOTED(SYSCONFDIR, "$SYSCONFDIR",
+                [Define to the system configuration directory.])
+AS_AC_EXPAND(LIBDIR, $libdir)
+AC_DEFINE_UNQUOTED(LIBDIR, "$LIBDIR",
+                [Define to the libraries directory.])
+
+dnl DEBUG mode
+AC_MSG_CHECKING(whether to enable DEBUG mode)
+AC_ARG_ENABLE(debug,
+   [AS_HELP_STRING([--enable-debug], [enable DEBUG mode [default=no]])],
+   ,[enable_debug=no])
+if test "x$enable_debug" = "xyes"; then
+   if test "x$GCC" = "xyes"; then
+      CXXFLAGS="$CXXFLAGS -ggdb3 -O0 -DDEBUG"
+   fi
+else
+   CXXFLAGS="$CXXFLAGS -DNDEBUG"
+   enable_debug="no"
+fi
+AC_MSG_RESULT($enable_debug)
+
+dnl getopt.h
+AC_CHECK_HEADER(getopt.h)
+AC_MSG_CHECKING(for GNU getopt_long)
+AC_TRY_LINK([
+	#include <string.h>
+	#include <unistd.h>
+	#define _GNU_SOURCE
+	#include <getopt.h>
+   ], [
+	return getopt_long (0, NULL, NULL, NULL, NULL);
+   ],
+   AC_MSG_RESULT([yes])
+   AC_DEFINE(HAVE_GETOPT_H,1,
+                [Define to 1 if you have the <getopt.h> header.])
+   have_getopt="yes",
+   AC_MSG_RESULT([no])
+   have_getopt="no")
+
+dnl libresolv
+RESOLV_LIB="-lresolv"
+AC_MSG_CHECKING(for libresolv)
+if test -f $libdir/libresolv.so; then
+   AC_MSG_RESULT($libdir/libresolv.so)
+else
+   RESOLV_LIB="$libdir/libresolv.a"
+fi
+AC_SUBST(RESOLV_LIB)
+
+dnl libsocket
+AC_SEARCH_LIBS(socket, socket)
+
+dnl libnsl
+AC_SEARCH_LIBS(inet_ntoa, nsl)
+
+dnl OpenSSL
+PKG_CHECK_MODULES(OPENSSL, openssl >= 0.9.7)
+AC_SUBST(OPENSSL_CFLAGS)
+AC_SUBST(OPENSSL_LIBS)
+
+dnl Neon or Curl ?
+AC_MSG_CHECKING(which HTTP library to use)
+AC_ARG_WITH(http,
+   [AS_HELP_STRING([--with-http=@<:@neon|curl@:>@], [which HTTP library to use [default=curl]])])
+httplibrary=$with_http
+if test "x$httplibrary" = "x"; then
+   httplibrary="curl"
+fi
+AC_MSG_RESULT($httplibrary)
+case "$httplibrary" in
+neon)
+PKG_CHECK_MODULES(NEON, neon)
+HTTP_CFLAGS="-DUSE_NEON $NEON_CFLAGS"
+HTTP_LIBS="$NEON_LIBS"
+;;
+curl)
+PKG_CHECK_MODULES(CURL, libcurl)
+HTTP_CFLAGS="-DUSE_CURL $CURL_CFLAGS"
+HTTP_LIBS="$CURL_LIBS"
+;;
+esac
+AC_SUBST(HTTP_CFLAGS)
+AC_SUBST(HTTP_LIBS)
+
+dnl libdomainkeys
+AC_MSG_CHECKING(where libdomainkeys can be found)
+AC_ARG_WITH(libdomainkeys,
+   [AS_HELP_STRING([--with-libdomainkeys=/usr/local/libdomainkeys], [where libdomainkeys can be found [default=/usr/local/libdomainkeys]])])
+libdomainkeysdir=$with_libdomainkeys
+if test "x$libdomainkeysdir" = "x"; then
+   libdomainkeysdir="/usr/local/libdomainkeys"
+fi
+AC_MSG_RESULT($libdomainkeysdir)
+AC_SUBST(libdomainkeysdir)
+
+dnl libesmtp
+AM_CONDITIONAL(USE_LIBESMTP, true)
+AC_MSG_CHECKING(whether to enable libesmtp support)
+AC_ARG_ENABLE(libesmtp,
+   [AS_HELP_STRING([--enable-libesmtp], [enable libesmtp support [default=yes]])],
+   ,[enable_libesmtp=yes])
+AC_MSG_RESULT($enable_libesmtp)
+if test "x$enable_libesmtp" = "xno"; then
+   AM_CONDITIONAL(USE_LIBESMTP, false)
+   LIBESMTP_CFLAGS=""
+   LIBESMTP_LIBS=""
+else
+   AC_MSG_CHECKING(where libesmtp can be found)
+   AC_ARG_WITH(libesmtp,
+      [AS_HELP_STRING([--with-libesmtp=/usr/local/libesmtp], [where libesmtp can be found [default=/usr]])])
+   libesmtpdir=$with_libesmtp
+   if test "x$libesmtpdir" = "x"; then
+      libesmtpdir="/usr"
+   else
+      CXXFLAGS="$CXXFLAGS -I$libesmtpdir/include"
+      LIBS="-L$libesmtpdir/lib $LIBS"
+   fi
+   AC_MSG_RESULT($libesmtpdir)
+   AC_SUBST(libesmtpdir)
+
+   AC_PATH_PROG(LIBESMTP_CONFIG, libesmtp-config, no, $libesmtpdir/bin:$PATH)
+   if test "$LIBESMTP_CONFIG" = "no" ; then
+      AC_MSG_ERROR([Can't find libesmtp-config in $libesmtpdir:$PATH.])
+      exit 1
+   fi
+   SMTP_CFLAGS="-DUSE_LIBESMTP"
+   LIBESMTP_CFLAGS=`$LIBESMTP_CONFIG --cflags`
+   LIBESMTP_LIBS=`$LIBESMTP_CONFIG --libs`
+fi
+
+dnl libetpan
+AM_CONDITIONAL(USE_LIBETPAN, false)
+AC_MSG_CHECKING(whether to enable libetpan support)
+AC_ARG_ENABLE(libetpan,
+   [AS_HELP_STRING([--enable-libetpan], [enable libetpan support [default=no]])],
+   ,[enable_libetpan=no])
+AC_MSG_RESULT($enable_libetpan)
+if test "x$enable_libetpan" = "xyes"; then
+   AC_MSG_CHECKING(where libetpan can be found)
+   AC_ARG_WITH(libetpan,
+      [AS_HELP_STRING([--with-libetpan=/usr/local/libetpan], [where libetpan can be found [default=/usr]])])
+   libetpandir=$with_libetpan
+   if test "x$libetpandir" = "x"; then
+      libetpandir="/usr"
+   else
+      CXXFLAGS="$CXXFLAGS -I$libetpandir/include"
+      LIBS="-L$libetpandir/lib $LIBS"
+   fi
+   AC_MSG_RESULT($libetpandir)
+   AC_SUBST(libetpandir)
+
+   AC_PATH_PROG(LIBETPAN_CONFIG, libetpan-config, no, $libetpandir/bin:$PATH)
+   if test "$LIBETPAN_CONFIG" = "no" ; then
+      AC_MSG_ERROR([Can't find libetpan-config in $libetpandir:$PATH.])
+      exit 1
+   fi
+   SMTP_CFLAGS="$SMTP_CFLAGS -DUSE_LIBETPAN"
+   AM_CONDITIONAL(USE_LIBETPAN, true)
+   LIBETPAN_CFLAGS=`$LIBETPAN_CONFIG --cflags`
+   LIBETPAN_LIBS=`$LIBETPAN_CONFIG --libs`
+else
+   LIBETPAN_CFLAGS=""
+   LIBETPAN_LIBS=""
+fi
+
+dnl smtp
+SMTP_CFLAGS="$SMTP_CFLAGS $LIBESMTP_CFLAGS $LIBETPAN_CFLAGS"
+SMTP_LIBS="$LIBESMTP_LIBS $LIBETPAN_LIBS"
+AC_SUBST(SMTP_CFLAGS)
+AC_SUBST(SMTP_LIBS)
+
+dnl libxml2
+PKG_CHECK_MODULES(LIBXML, libxml-2.0)
+AC_SUBST(LIBXML_CFLAGS) 
+AC_SUBST(LIBXML_LIBS) 
+
+dnl pthreads
+pthreadlib=""
+AC_SUBST(PTHREAD_LIBS)
+AC_MSG_CHECKING(if pthreads is available)
+ORIG_LIBS="$LIBS"
+for candidatelib in '' '-pthread' '-lc_r' '-lthr'; do
+   if test -z "$use_posix_mutex" ; then
+      LIBS="$candidatelib $ORIG_LIBS"
+      AC_TRY_LINK([#include <pthread.h>],
+         [pthread_mutex_t lck;
+         pthread_mutex_init(&lck, 0);
+         pthread_mutex_lock(&lck);
+         pthread_mutex_unlock(&lck);
+         pthread_mutex_destroy(&lck);],
+         [PTHREAD_LIBS="$candidatelib"
+         pthreadlib=candidatelib]
+      )
+   fi
+done
+LIBS="$ORIG_LIBS"
+if test "$pthreadlib" ; then
+   if test -z "$PTHREAD_LIBS" ; then
+      AC_MSG_RESULT(yes)
+   else
+      AC_MSG_RESULT([yes with $PTHREAD_LIBS])
+   fi
+else
+   AC_MSG_RESULT(no)
+   AC_CHECK_LIB(pthreadGCE2, pthread_mutex_lock,
+      [PTHREAD_CFLAGS="-Ipthread"
+       PTHREAD_LIBS="-lpthreadGCE2"])
+
+   if test -z "$PTHREAD_LIBS" ; then
+      AC_MSG_ERROR([Can't find pthreads.])
+      exit 1
+   fi
+fi
+
+dnl MySQL as DB backend ?
+AM_CONDITIONAL(USE_DB, false)
+AM_CONDITIONAL(USE_MYSQL, false)
+AC_MSG_CHECKING(which DB backend to use)
+AC_ARG_WITH(db,
+   [AS_HELP_STRING([--with-db=@<:@none|mysql@:>@], [which DB backend to use [default=mysql]])])
+dbbackend=$with_db
+if test "x$dbbackend" = "x"; then
+   dbbackend="mysql"
+fi
+AC_MSG_RESULT($dbbackend)
+case "$dbbackend" in
+none)
+DB_CFLAGS=""
+DB_LIBS=""
+;;
+mysql)
+AC_PATH_PROG(MYSQL_CONFIG, mysql_config, no)
+if test "$MYSQL_CONFIG" = "no" ; then
+   AC_MSG_ERROR([Can't find mysql_config in $PATH.])
+   exit 1
+fi
+AM_CONDITIONAL(USE_DB, true)
+AM_CONDITIONAL(USE_MYSQL, true)
+MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
+DB_CFLAGS="-DUSE_DB -DUSE_MYSQL $MYSQL_CFLAGS"
+DB_LIBS=`$MYSQL_CONFIG --libs`
+;;
+esac
+AC_SUBST(DB_CFLAGS)
+AC_SUBST(DB_LIBS)
+
+dnl FastCGI support
+AM_CONDITIONAL(HAVE_FASTCGI, false)
+FASTCGI_CFLAGS=""
+FASTCGI_LIBS=""
+AC_MSG_CHECKING(whether to enable FastCGI support)
+if test "x$dbbackend" = "xnone" ; then
+   AC_MSG_RESULT(no)
+else
+   AC_ARG_ENABLE(fastcgi,
+      [AS_HELP_STRING([--enable-fastcgi], [enable FastCGI support [default=no]])],
+      ,[enable_fastcgi=no])
+   if test "x$enable_fastcgi" = "xyes"; then
+      AM_CONDITIONAL(HAVE_FASTCGI, true)
+      FASTCGI_CFLAGS=""
+      FASTCGI_LIBS="-lfcgi++ -lfcgi"
+   else
+      enable_fastcgi="no"
+   fi
+   AC_MSG_RESULT($enable_fastcgi)
+fi
+AC_SUBST(FASTCGI_CFLAGS)
+AC_SUBST(FASTCGI_LIBS)
+
+dnl Check for specific functions
+AC_CHECK_FUNCS(gettimeofday)
+AC_CHECK_FUNCS(timegm)
+AC_CHECK_FUNCS(socketpair)
+AC_CHECK_FUNCS(fork)
+AC_CHECK_FUNCS(strerror_r)
+
+AC_OUTPUT([
+Doxyfile
+Makefile
+src/Makefile
+po/Makefile.in
+givemail.spec
+])

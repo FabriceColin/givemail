@@ -125,7 +125,8 @@ csv2givemail_LDADD = \
 	@HTTP_LIBS@ \
 	$(libdomainkeysdir)/libdomainkeys.a \
 	@OPENSSL_LIBS@ \
-	@DB_LIBS@
+	@DB_LIBS@ \
+	@PTHREAD_LIBS@
 
 csv2givemail_DEPENDENCIES = libCommon.la libgivemail.la
 
@@ -144,7 +145,8 @@ givemail_LDADD = \
 	@HTTP_LIBS@ \
 	$(libdomainkeysdir)/libdomainkeys.a \
 	@OPENSSL_LIBS@ \
-	@DB_LIBS@
+	@DB_LIBS@ \
+	@PTHREAD_LIBS@
 
 givemail_DEPENDENCIES = libCommon.la libgivemail.la
 
@@ -160,7 +162,8 @@ givemaild_LDADD = \
 	-lctemplate \
 	@LIBXML_LIBS@ \
 	@HTTP_LIBS@ \
-	@DB_LIBS@
+	@DB_LIBS@ \
+	@PTHREAD_LIBS@
 
 givemaild_DEPENDENCIES = libCommon.la libgivemail.la
 
