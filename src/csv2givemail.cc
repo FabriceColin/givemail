@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2014 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -44,7 +44,7 @@
 #include "Campaign.h"
 #include "ConfigurationFile.h"
 #include "CSVParser.h"
-#include "DomainKeys.h"
+#include "OpenDKIM.h"
 #include "Process.h"
 #include "Recipient.h"
 #include "SMTPSession.h"
@@ -263,7 +263,7 @@ class RunUnits
 
 			if (pConfig->m_threaded == true)
 			{
-				DomainKeys::cleanupThread();
+				OpenDKIM::cleanupThread();
 			}
 		}
 
@@ -539,7 +539,7 @@ void *workerUnitFunc(void *pArg)
 		return NULL;
 	}
 
-	DomainKeys domainKeys;
+	OpenDKIM domainKeys;
 	StatusUpdater statusUpdater;
 	Timer campaignTimer;
 
@@ -554,8 +554,7 @@ void *workerUnitFunc(void *pArg)
 
 		if (pConfig->findDomainLimits(domainLimits, true) == true)
 		{
-			domainKeys.loadPrivateKey(pConfig->m_dkDomain,
-				pConfig->m_dkPrivateKey);
+			domainKeys.loadPrivateKey(pConfig);
 
 			if (sendToDomain(domainLimits, pDetails, pRecipientsMap,
 				domainKeys, statusUpdater) == false)
@@ -1109,7 +1108,7 @@ int main(int argc, char **argv)
 	mySeed[1] = (unsigned short)time(NULL);
 	seed48(mySeed);
 
-	DomainKeys::initialize();
+	OpenDKIM::initialize();
 
 	// Redirect output ?
 	ofstream logFile;
@@ -1159,7 +1158,7 @@ int main(int argc, char **argv)
 		returnCode = EXIT_FAILURE;
 	}
 
-	DomainKeys::shutdown();
+	OpenDKIM::shutdown();
 
 	// Close the log file
 	cout.rdbuf(coutBuff);

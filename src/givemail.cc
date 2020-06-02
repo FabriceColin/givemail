@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2014 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -36,8 +36,8 @@
 #include <algorithm>
 
 #include "ConfigurationFile.h"
-#include "DomainKeys.h"
 #include "DomainsMap.h"
+#include "OpenDKIM.h"
 #include "Process.h"
 #include "Recipient.h"
 #include "Resolver.h"
@@ -159,7 +159,7 @@ static bool runTest(const string &domainName, XmlMessageDetails &testFile,
 	const string &statusFileName, map<string, Recipient> &destinations)
 {
 	ConfigurationFile *pConfig = ConfigurationFile::getInstance("");
-	DomainKeys domainKeys;
+	OpenDKIM domainKeys;
 	bool testStatus = true;
 
 	if (domainName.empty() == true)
@@ -183,8 +183,7 @@ static bool runTest(const string &domainName, XmlMessageDetails &testFile,
 
 	StatusUpdater updater(statusFileName);
 
-	domainKeys.loadPrivateKey(pConfig->m_dkDomain,
-		pConfig->m_dkPrivateKey);
+	domainKeys.loadPrivateKey(pConfig);
 
 	if (session.generateMessages(domainKeys, &testFile, destinations, &updater) == false)
 	{
@@ -377,7 +376,7 @@ void *workerThreadFunc(void *pArg)
 {
 	ConfigurationFile *pConfig = ConfigurationFile::getInstance("");
 	DomainsMap *pDomainsMap = DomainsMap::getInstance();
-	DomainKeys domainKeys;
+	OpenDKIM domainKeys;
 
 	if ((pArg == NULL) ||
 		(pDomainsMap == NULL))
@@ -398,8 +397,7 @@ void *workerThreadFunc(void *pArg)
 
 		if (pConfig->findDomainLimits(domainLimits, true) == true)
 		{
-			domainKeys.loadPrivateKey(pConfig->m_dkDomain,
-				pConfig->m_dkPrivateKey);
+			domainKeys.loadPrivateKey(pConfig);
 
 			sendToDomain(pThreadArg->m_campaignId, domainLimits,
 				pThreadArg->m_pDetails, domainKeys, recipientsCount);
@@ -421,7 +419,7 @@ void *workerThreadFunc(void *pArg)
 	// Delete the argument object
 	delete pThreadArg;
 
-	DomainKeys::cleanupThread();
+	OpenDKIM::cleanupThread();
 
 	return NULL;
 }
@@ -527,7 +525,7 @@ static bool runSlave(const string &campaignId, const string &slaveId)
 		// Each thread will pick a domain, is there any left ?
 		if (rowsCount > maxSlaves)
 		{
-			DomainKeys domainKeys;
+			OpenDKIM domainKeys;
 			string domainName;
 			unsigned int recipientsCount = 0;
 
@@ -539,8 +537,7 @@ static bool runSlave(const string &campaignId, const string &slaveId)
 
 				if (pConfig->findDomainLimits(domainLimits, true) == true)
 				{
-					domainKeys.loadPrivateKey(pConfig->m_dkDomain,
-						pConfig->m_dkPrivateKey);
+					domainKeys.loadPrivateKey(pConfig);
 
 					sendToDomain(campaignId, domainLimits,
 						pDetails, domainKeys, recipientsCount);
@@ -906,7 +903,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	DomainKeys::initialize();
+	OpenDKIM::initialize();
 
 	// Redirect output ?
 	ofstream logFile;
@@ -1015,7 +1012,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	DomainKeys::shutdown();
+	OpenDKIM::shutdown();
 
 	// FIXME: delete g_pDb, as well as DomainsMap and ConfigurationFile instances
 

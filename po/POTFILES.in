@@ -14,10 +14,12 @@ src/HMAC.cc
 src/Key.cc
 src/MessageDetails.cc
 src/MySQLBase.cc
+src/OpenDKIM.cc
 src/Process.cc
 src/QuotedPrintable.cc
 src/Recipient.cc
 src/Resolver.cc
+src/SMTPMessage.cc
 src/SMTPSession.cc
 src/StatusUpdater.cc
 src/Substitute.cc

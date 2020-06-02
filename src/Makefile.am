@@ -18,7 +18,6 @@ noinst_HEADERS = \
 	DBUsageLogger.h \
 	Daemon.h \
 	DomainAuth.h \
-	DomainKeys.h \
 	DomainLimits.h \
 	DomainsMap.h \
 	HMAC.h \
@@ -27,6 +26,7 @@ noinst_HEADERS = \
 	LibETPANProvider.h \
 	MessageDetails.h \
 	MySQLBase.h \
+	OpenDKIM.h \
 	Process.h \
 	QuotedPrintable.h \
 	Recipient.h \
@@ -59,6 +59,23 @@ bin_PROGRAMS = csv2givemail givemail
 endif
 endif
 
+libMailCore_la_SOURCES = \
+	OpenDKIM.cc \
+	QuotedPrintable.cc \
+	SMTPMessage.cc \
+	SMTPProvider.cc \
+	SMTPSession.cc \
+	Timer.cc
+
+if USE_LIBESMTP
+libMailCore_la_SOURCES += \
+	LibESMTPProvider.cc
+endif
+if USE_LIBETPAN
+libMailCore_la_SOURCES += \
+	LibETPANProvider.cc
+endif
+
 libMailUtils_la_SOURCES = \
 	Base64.cc \
 	DomainAuth.cc \
@@ -75,7 +92,6 @@ libCommon_la_SOURCES = \
 	ConfigurationFile.cc \
 	CSVParser.cc \
 	Daemon.cc \
-	DomainKeys.cc \
 	DomainsMap.cc \
 	HMAC.cc \
 	Key.cc \
@@ -95,21 +111,6 @@ libCommon_la_SOURCES += \
 endif
 endif
 
-libMailCore_la_SOURCES = \
-	QuotedPrintable.cc \
-	SMTPProvider.cc \
-	SMTPSession.cc \
-	Timer.cc
-
-if USE_LIBESMTP
-libMailCore_la_SOURCES += \
-	LibESMTPProvider.cc
-endif
-if USE_LIBETPAN
-libMailCore_la_SOURCES += \
-	LibETPANProvider.cc
-endif
-
 csv2givemail_SOURCES = \
 	csv2givemail.cc
 
@@ -117,18 +118,18 @@ csv2givemail_LDFLAGS = \
 	-rdynamic
 
 csv2givemail_LDADD = \
-	-lgivemail -lCommon \
+	-lMailCore -lMailUtils -lCommon \
 	@RESOLV_LIB@ \
 	-lctemplate \
 	@SMTP_LIBS@ \
 	@LIBXML_LIBS@ \
 	@HTTP_LIBS@ \
-	$(libdomainkeysdir)/libdomainkeys.a \
 	@OPENSSL_LIBS@ \
+	@OPENDKIM_LIBS@ \
 	@DB_LIBS@ \
 	@PTHREAD_LIBS@
 
-csv2givemail_DEPENDENCIES = libCommon.la libgivemail.la
+csv2givemail_DEPENDENCIES = libCommon.la libMailUtils.la libMailCore.la
 
 givemail_SOURCES = \
 	givemail.cc
@@ -137,18 +138,18 @@ givemail_LDFLAGS = \
 	-rdynamic
 
 givemail_LDADD = \
-	-lgivemail -lCommon \
+	-lMailCore -lMailUtils -lCommon \
 	@RESOLV_LIB@ \
 	-lctemplate \
 	@SMTP_LIBS@ \
 	@LIBXML_LIBS@ \
 	@HTTP_LIBS@ \
-	$(libdomainkeysdir)/libdomainkeys.a \
 	@OPENSSL_LIBS@ \
+	@OPENDKIM_LIBS@ \
 	@DB_LIBS@ \
 	@PTHREAD_LIBS@
 
-givemail_DEPENDENCIES = libCommon.la libgivemail.la
+givemail_DEPENDENCIES = libCommon.la libMailUtils.la libMailCore.la
 
 givemaild_SOURCES = \
 	givemaild.cc
@@ -157,7 +158,7 @@ givemaild_LDFLAGS = \
 	-rdynamic
 
 givemaild_LDADD = \
-	-lgivemail -lCommon \
+	-lMailCore -lMailUtils -lCommon \
 	@RESOLV_LIB@ \
 	-lctemplate \
 	@LIBXML_LIBS@ \
@@ -165,14 +166,14 @@ givemaild_LDADD = \
 	@DB_LIBS@ \
 	@PTHREAD_LIBS@
 
-givemaild_DEPENDENCIES = libCommon.la libgivemail.la
+givemaild_DEPENDENCIES = libCommon.la libMailUtils.la libMailCore.la
 
 libgivemail_la_SOURCES =
 
 libgivemail_la_LDFLAGS = -module -version-info 0:0:0 -shared -nostartfiles
 
 libgivemail_la_LIBADD = \
-	-lMailCore -lMailUtils \
+	-lMailCore -lMailUtils -lCommon \
 	@RESOLV_LIB@ \
 	-lctemplate \
 	@SMTP_LIBS@ \
@@ -188,7 +189,7 @@ webapi_key_manager_LDFLAGS = \
 	-rdynamic
 
 webapi_key_manager_LDADD = \
-	-lCommon -lMailUtils \
+	-lMailCore -lMailUtils -lCommon \
 	@RESOLV_LIB@ \
 	-lctemplate \
 	@LIBXML_LIBS@ \
@@ -196,7 +197,7 @@ webapi_key_manager_LDADD = \
 	@OPENSSL_LIBS@ \
 	@DB_LIBS@
 
-webapi_key_manager_DEPENDENCIES = libMailUtils.la libCommon.la
+webapi_key_manager_DEPENDENCIES = libCommon.la libMailUtils.la
 
 webapi_fcgi_SOURCES = \
 	AuthSQL.cc \
@@ -209,7 +210,7 @@ webapi_fcgi_LDFLAGS = \
 	-rdynamic
 
 webapi_fcgi_LDADD = \
-	-lCommon -lMailUtils \
+	-lMailUtils -lCommon \
 	@RESOLV_LIB@ \
 	-lctemplate \
 	@LIBXML_LIBS@ \
@@ -218,7 +219,7 @@ webapi_fcgi_LDADD = \
 	@FASTCGI_LIBS@ \
 	@DB_LIBS@
 
-webapi_fcgi_DEPENDENCIES = libMailUtils.la libCommon.la
+webapi_fcgi_DEPENDENCIES = libCommon.la libMailUtils.la
 
 AM_CXXFLAGS = \
 	-g -Wall \
@@ -227,7 +228,7 @@ AM_CXXFLAGS = \
 	@LIBXML_CFLAGS@ \
 	@HTTP_CFLAGS@ \
 	@OPENSSL_CFLAGS@ \
+	@OPENDKIM_CFLAGS@ \
 	@FASTCGI_CFLAGS@ \
-	@DB_CFLAGS@ \
-	-I$(libdomainkeysdir)
+	@DB_CFLAGS@
 

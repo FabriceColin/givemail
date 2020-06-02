@@ -14,7 +14,7 @@ AC_HEADER_STDC
 AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_CXXCPP
-AC_PROG_LIBTOOL
+AM_PROG_LIBTOOL
 
 dnl gettext support
 GETTEXT_PACKAGE=givemail
@@ -133,16 +133,10 @@ esac
 AC_SUBST(HTTP_CFLAGS)
 AC_SUBST(HTTP_LIBS)
 
-dnl libdomainkeys
-AC_MSG_CHECKING(where libdomainkeys can be found)
-AC_ARG_WITH(libdomainkeys,
-   [AS_HELP_STRING([--with-libdomainkeys=/usr/local/libdomainkeys], [where libdomainkeys can be found [default=/usr/local/libdomainkeys]])])
-libdomainkeysdir=$with_libdomainkeys
-if test "x$libdomainkeysdir" = "x"; then
-   libdomainkeysdir="/usr/local/libdomainkeys"
-fi
-AC_MSG_RESULT($libdomainkeysdir)
-AC_SUBST(libdomainkeysdir)
+dnl OpenDKIM
+PKG_CHECK_MODULES(OPENDKIM, opendkim >= 2.11.0)
+AC_SUBST(OPENDKIM_CFLAGS)
+AC_SUBST(OPENDKIM_LIBS)
 
 dnl libesmtp
 AM_CONDITIONAL(USE_LIBESMTP, true)
@@ -187,28 +181,9 @@ AC_ARG_ENABLE(libetpan,
    ,[enable_libetpan=no])
 AC_MSG_RESULT($enable_libetpan)
 if test "x$enable_libetpan" = "xyes"; then
-   AC_MSG_CHECKING(where libetpan can be found)
-   AC_ARG_WITH(libetpan,
-      [AS_HELP_STRING([--with-libetpan=/usr/local/libetpan], [where libetpan can be found [default=/usr]])])
-   libetpandir=$with_libetpan
-   if test "x$libetpandir" = "x"; then
-      libetpandir="/usr"
-   else
-      CXXFLAGS="$CXXFLAGS -I$libetpandir/include"
-      LIBS="-L$libetpandir/lib $LIBS"
-   fi
-   AC_MSG_RESULT($libetpandir)
-   AC_SUBST(libetpandir)
-
-   AC_PATH_PROG(LIBETPAN_CONFIG, libetpan-config, no, $libetpandir/bin:$PATH)
-   if test "$LIBETPAN_CONFIG" = "no" ; then
-      AC_MSG_ERROR([Can't find libetpan-config in $libetpandir:$PATH.])
-      exit 1
-   fi
-   SMTP_CFLAGS="$SMTP_CFLAGS -DUSE_LIBETPAN"
-   AM_CONDITIONAL(USE_LIBETPAN, true)
-   LIBETPAN_CFLAGS=`$LIBETPAN_CONFIG --cflags`
-   LIBETPAN_LIBS=`$LIBETPAN_CONFIG --libs`
+   PKG_CHECK_MODULES(LIBETPAN, libetpan)
+   AC_SUBST(LIBETPAN_CFLAGS)
+   AC_SUBST(LIBETPAN_LIBS)
 else
    LIBETPAN_CFLAGS=""
    LIBETPAN_LIBS=""
