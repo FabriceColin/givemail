@@ -55,10 +55,6 @@ class LibETPANMessage : public SMTPMessage
 		virtual bool addSignatureHeader(const std::string &header,
 			const std::string &value);
 
-		/// Adds a header.
-		virtual bool addHeader(const std::string &header,
-			const std::string &value, const std::string &path);
-
 		/// Sets the DSN Env Id.
 		virtual void setEnvId(const std::string &dsnEnvId);
 
@@ -75,22 +71,7 @@ class LibETPANMessage : public SMTPMessage
 		const char *getEnvId(void);
 
 	protected:
-		struct Header
-		{
-			Header(const std::string &value, const std::string &path) :
-				m_value(value),
-				m_path(path)
-			{
-			}
-
-			std::string m_value;
-			std::string m_path;
-		};
 		bool m_relatedFirst;
-		std::map<std::string, struct Header> m_headers;
-
-		virtual void appendHeader(const std::string &header,
-			const std::string &value, const std::string &path);
 
 		struct mailimf_fields *headersToFields(void);
 

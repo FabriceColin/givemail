@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- *  Copyright 2009-2015 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,6 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
-#include <utility>
 
 #include "config.h"
 #include "LibETPANProvider.h"
@@ -42,7 +41,6 @@ using std::endl;
 using std::string;
 using std::stringstream;
 using std::map;
-using std::pair;
 using std::vector;
 using std::for_each;
 
@@ -514,7 +512,7 @@ static mailmime *buildFilePart(Attachment *pAttachment)
 			MAILMIME_MECHANISM_BASE64);
 
 		// These must be malloc-ed
-#if LIBETPAN_VERSION_MINOR == 6
+#if LIBETPAN_VERSION_MINOR >= 6
 		mime_id = mailmime_field_new(MAILMIME_FIELD_ID, NULL, NULL,
 			pCID, NULL, 0, NULL, NULL, NULL);
 #else
@@ -759,21 +757,6 @@ LibETPANMessage::~LibETPANMessage()
 	}
 }
 
-void LibETPANMessage::appendHeader(const string &header,
-	const string &value, const string &path)
-{
-	if (addHeader(header, value, path) == true)
-	{
-		// Build a colon separated list of headers
-		// That will be useful when signing the message
-		if (m_headersList.empty() == false)
-		{
-			m_headersList.append(":");
-		}
-		m_headersList.append(header);
-	}
-}
-
 struct mailimf_fields *LibETPANMessage::headersToFields(void)
 {
 	vector<struct mailimf_field *> optionalFields;
@@ -793,11 +776,12 @@ struct mailimf_fields *LibETPANMessage::headersToFields(void)
 		// FIXME: request MDN to be sent to the same address as the reverse path
 	}
 
-	for (map<string, struct Header>::const_iterator headerIter = m_headers.begin();
+	for (vector<SMTPHeader>::const_iterator headerIter = m_headers.begin();
 		headerIter != m_headers.end(); ++headerIter)
 	{
-		string value(headerIter->second.m_value), path(headerIter->second.m_path);
-		string headerName(headerIter->first);
+		string headerName(headerIter->m_name);
+		string value(headerIter->m_value);
+		string path(headerIter->m_path);
 
 		if (headerName == "From")
 		{
@@ -922,7 +906,7 @@ string LibETPANMessage::getUserAgent(void) const
 		return m_pDetails->m_userAgent;
 	}
 	
-	return PACKAGE_NAME"/etpan "PACKAGE_VERSION;
+	return PACKAGE_NAME "/etpan " PACKAGE_VERSION;
 }
 
 bool LibETPANMessage::addSignatureHeader(const string &header,
@@ -944,26 +928,6 @@ bool LibETPANMessage::addSignatureHeader(const string &header,
 	}
 
 	return false;
-}
-
-bool LibETPANMessage::addHeader(const string &header,
-	const string &value, const string &path)
-{
-	// We need at least header and a value or a path
-	if (header.empty() == true)
-	{
-		return false;
-	}
-	if ((value.empty() == true) &&
-		(path.empty() == true))
-	{
-		return false;
-	}
-
-	// Store this
-	m_headers.insert(pair<string, struct Header>(header, Header(value, path)));
-
-	return true;
 }
 
 void LibETPANMessage::setEnvId(const string &dsnEnvId)

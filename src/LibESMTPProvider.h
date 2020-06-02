@@ -46,7 +46,6 @@ class LibESMTPMessage : public SMTPMessage
 			START_ATTACHMENT, ATTACHMENT_HEADERS, ATTACHMENT_LINE, ATTACHMENT_LINE_END, END_ATTACHMENT, NEXT_ATTACHMENT,
 			END_MIXED, END } Stage;
 
-		std::string m_headers;
 		Stage m_stage;
 		unsigned int m_currentAttachment;
 		off_t m_encodedPos;
@@ -87,12 +86,10 @@ class LibESMTPMessage : public SMTPMessage
 		bool hasMoreAttachmentLines(void) const;
 
 	protected:
+		std::string m_headersDump;
 		bool m_hasMoreLines;
 
 		virtual void buildHeaders(void);
-
-		virtual void appendHeader(const std::string &header,
-			const std::string &value, const std::string &path);
 
 	private:
 		LibESMTPMessage(const LibESMTPMessage &other);

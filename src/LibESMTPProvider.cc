@@ -232,10 +232,10 @@ const char *messageDataCallback(void **ppBuf, int *pLen, void *pArg)
 	switch (pMsg->m_stage)
 	{
 		case LibESMTPMessage::EXTRA_HEADERS:
-			if (pMsg->m_headers.empty() == false)
+			if (pMsg->m_headersDump.empty() == false)
 			{
-				*pLen = (int)pMsg->m_headers.length();
-				pBuf = pMsg->m_headers.c_str();
+				*pLen = (int)pMsg->m_headersDump.length();
+				pBuf = pMsg->m_headersDump.c_str();
 				break;
 			}
 			pMsg->m_stage = LibESMTPMessage::START_MIXED;
@@ -690,56 +690,15 @@ void LibESMTPMessage::buildHeaders(void)
 	SMTPMessage::buildHeaders();
 }
 
-void LibESMTPMessage::appendHeader(const string &header,
-	const string &value, const string &path)
-{
-	if (addHeader(header, value, path) == true)
-	{
-		// Build a colon separated list of headers
-		// That will be useful when signing the message
-		if (m_headersList.empty() == false)
-		{
-			m_headersList.append(":");
-		}
-		m_headersList.append(header);
-	}
-}
-
-string LibESMTPMessage::getUserAgent(void) const
-{
-	if ((m_pDetails != NULL) &&
-		(m_pDetails->m_userAgent.empty() == false))
-	{
-		return m_pDetails->m_userAgent;
-	}
-	
-	return PACKAGE_NAME"/esmtp "PACKAGE_VERSION;
-}
-
-bool LibESMTPMessage::addSignatureHeader(const string &header,
-	const string &value)
-{
-	string signatureHeader(header);
-
-	if ((header.empty() == true) ||
-		(value.empty() == true))
-	{
-		return false;
-	}
-
-	signatureHeader += ": ";
-	signatureHeader += value;
-
-	// Add this as the top header
-	m_headers.insert(0, signatureHeader);
-
-	return true;
-}
-
 bool LibESMTPMessage::addHeader(const string &header,
 	const string &value, const string &path)
 {
 	stringstream headerStr;
+
+	if (SMTPMessage::addHeader(heade, value, path) == false)
+	{
+		return false;
+	}
 
 	// We need at least header and a value or a path
 	if (header.empty() == true)
@@ -766,7 +725,38 @@ bool LibESMTPMessage::addHeader(const string &header,
 #ifdef DEBUG
 	clog << "LibESMTPMessage::addHeader: " << headerStr.str();
 #endif
-	m_headers.append(headerStr.str());
+	m_headersDump.append(headerStr.str());
+
+	return true;
+}
+
+string LibESMTPMessage::getUserAgent(void) const
+{
+	if ((m_pDetails != NULL) &&
+		(m_pDetails->m_userAgent.empty() == false))
+	{
+		return m_pDetails->m_userAgent;
+	}
+
+	return PACKAGE_NAME"/esmtp "PACKAGE_VERSION;
+}
+
+bool LibESMTPMessage::addSignatureHeader(const string &header,
+	const string &value)
+{
+	string signatureHeader(header);
+
+	if ((header.empty() == true) ||
+		(value.empty() == true))
+	{
+		return false;
+	}
+
+	signatureHeader += ": ";
+	signatureHeader += value;
+
+	// Add this as the top header
+	m_allHeaders.insert(0, signatureHeader);
 
 	return true;
 }
