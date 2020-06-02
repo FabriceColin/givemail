@@ -2,7 +2,16 @@
 
 SUBDIRS = src po
 
-EXTRA_DIST = README COPYING.LIB AUTHORS ChangeLog INSTALL NEWS TODO Doxyfile \
+.PHONY: ChangeLog
+
+ChangeLog: Makefile
+	(GIT_DIR=$(top_srcdir)/.git git log > .changelog.tmp \
+	&& mv .changelog.tmp ChangeLog; rm -f .changelog.tmp) \
+	|| (touch ChangeLog; echo 'Git directory not found: installing possibly empty changelog.' >&2)
+
+dist-hook: ChangeLog
+
+EXTRA_DIST = README COPYING.LIB AUTHORS ChangeLog ChangeLog-previous INSTALL NEWS TODO Doxyfile \
 	intltool-extract.in intltool-merge.in intltool-update.in \
 	conf/*.conf conf/*.sql conf/*.logrotate solaris \
 	sample-api-calls/*.xml sample-emails/*.xml scripts/givemaild \
