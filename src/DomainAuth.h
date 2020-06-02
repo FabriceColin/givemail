@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,9 @@
 
 #include <string>
 
+#include "ConfigurationFile.h"
+#include "SMTPMessage.h"
+
 // DomainAuth support.
 class DomainAuth
 {
@@ -31,22 +34,20 @@ class DomainAuth
 		virtual ~DomainAuth();
 
 		/// Loads the private key for the given domain name.
-		virtual bool loadPrivateKey(const std::string &domainName,
-			const std::string &privateKeyFileName) = 0;
+		virtual bool loadPrivateKey(ConfigurationFile *pConfig) = 0;
 
 		/// Returns true if messages can be signed.
 		virtual bool canSign(void) const = 0;
 
 		/**
-		  * Signs message data and returns a signature header.
-		  * Headers list should be a colon-separated list of headers.
+		  * Signs message data, appends a signature header.
 		  */
 		virtual bool sign(const std::string &messageData,
-			const std::string &headersList, bool simpleCanon,
-			std::string &headerName, std::string &headerValue) = 0;
+			SMTPMessage *pMsg, bool simpleCanon) = 0;
 
 		/// Verifies the message data against the included signature.
-		virtual bool verify(const std::string &messageData) = 0;
+		virtual bool verify(const std::string &messageData,
+			SMTPMessage *pMsg) = 0;
 
 	protected:
 		char *m_pPrivateKey;

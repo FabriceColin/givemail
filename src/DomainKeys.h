@@ -27,7 +27,9 @@ extern "C"
 }
 #include <string>
 
+#include "ConfigurationFile.h"
 #include "DomainAuth.h"
+#include "SMTPMessage.h"
 
 // DomainKeys support.
 class DomainKeys : public DomainAuth
@@ -46,22 +48,20 @@ class DomainKeys : public DomainAuth
 		static void cleanupThread(void);
 
 		/// Loads the private key for the given domain name.
-		virtual bool loadPrivateKey(const std::string &domainName,
-			const std::string &privateKeyFileName);
+		virtual bool loadPrivateKey(ConfigurationFile *pConfig);
 
 		/// Returns true if messages can be signed.
 		virtual bool canSign(void) const;
 
 		/**
-		  * Signs message data.
-		  * Headers list should be a colon-separated list of headers.
+		  * Signs message data, appends a signature header.
 		  */
 		virtual bool sign(const std::string &messageData,
-			const std::string &headersList, bool simpleCanon,
-			std::string &headerName, std::string &headerValue);
+			SMTPMessage *pMsg, bool simpleCanon);
 
 		/// Verifies the message data against the included signature.
-		virtual bool verify(const std::string &messageData);
+		virtual bool verify(const std::string &messageData,
+			SMTPMessage *pMsg);
 
 	protected:
 		static DK_LIB *m_pLib;

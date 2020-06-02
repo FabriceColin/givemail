@@ -60,21 +60,23 @@ bool DomainKeys::loadPrivateKey(const string &domainName,
 		m_pPrivateKey = NULL;
 	}
 
-	if ((domainName.empty() == true) ||
-		(privateKeyFileName.empty() == true))
+	if ((pConfig == NULL) ||
+		(pConfig->m_dkPrivateKey.empty() == true) ||
+		(pConfig->m_dkDomain.empty() == true))
 	{
 		return false;
 	}
 
 	// Load the private key
 	off_t keySize = 0;
-	m_pPrivateKey = MessageDetails::loadRaw(privateKeyFileName, keySize);
+	m_pPrivateKey = MessageDetails::loadRaw(pConfig->m_dkPrivateKey, keySize);
 	if (m_pPrivateKey == NULL)
 	{
 		return false;
 	}
 
-	m_domainName = domainName;
+	m_privateKeyFileName = pConfig->m_dkPrivateKey;
+	m_domainName = pConfig->m_dkDomain;
 
 	return true;
 }
@@ -121,14 +123,14 @@ bool DomainKeys::canSign(void) const
 }
 
 bool DomainKeys::sign(const string &messageData,
-	const string &headersList, bool simpleCanon,
-	string &headerName, string &headerValue)
+	SMTPMessage *pMsg, bool simpleCanon)
 {
 	DK_STAT stat;
 	DK_FLAGS flags = (DK_FLAGS)0;
 
 	if ((canSign() == false) ||
-		(messageData.empty() == true))
+		(messageData.empty() == true) ||
+		(pMsg == NULL))
 	{
 		return false;
 	}
@@ -226,24 +228,25 @@ bool DomainKeys::sign(const string &messageData,
 	}
 	headerStr << "; s=default; d=" << m_domainName << ";\r\n";
 #ifdef _MUST_ADD_HEADERS_LIST
-	if (headersList.empty() == false)
+	if (pMsg->m_allHeaders.empty() == false)
 	{
-		headerStr << "  h=" << headersList << ";\r\n";
+		headerStr << "  h=" << pMsg->m_allHeaders << ";\r\n";
 	}
 #endif
 	headerStr << "  b=" << signature << ";\r\n";
 
-	headerName = "DomainKey-Signature";
-	headerValue = headerStr.str();
+	pMsg->addSignatureHeader("DomainKey-Signature", headerStr.str());
 
 	return true;
 }
 
-bool DomainKeys::verify(const string &messageData)
+bool DomainKeys::verify(const string &messageData,
+	SMTPMessage *pMsg)
 {
 	DK_STAT stat;
 	DK_FLAGS flags = (DK_FLAGS)0;
 
+	// pMsg is not used here
 	if ((canSign() == false) ||
 		(messageData.empty() == true))
 	{

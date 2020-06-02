@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2011 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -433,15 +433,19 @@ void SMTPSession::signMessage(SMTPMessage *pMsg, DomainAuth &domainAuth)
 	string headerName, headerValue;
 
 	// Sign the message
-	if ((domainAuth.canSign() == true) &&
-		(domainAuth.sign(fullMessage, pMsg->m_headersList, false,
-		headerName, headerValue) == true))
+	if (domainAuth.canSign() == true)
 	{
+		if (domainAuth.sign(fullMessage, pMsg, false) == true)
+		{
 #ifdef DEBUG
-		clog << "SMTPSession::signMessage: signature is '" << headerName << ": " << headerValue << "'" << endl;
+			clog << "SMTPSession::signMessage: signature is '" << headerName << ": " << headerValue << "'" << endl;
 #endif
 
-		pMsg->addSignatureHeader(headerName, headerValue);
+			pMsg->addSignatureHeader(headerName, headerValue);
+		}
+		else
+		{
+		}
 	}
 
 	m_msgsDataSize += fullMessage.length() + headerName.length() + headerValue.length() + 2;
