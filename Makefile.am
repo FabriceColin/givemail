@@ -29,7 +29,9 @@ documentation:
 manuals:
 	@help2man -Nn "Extract recipients from a CSV file" src/csv2givemail >src/csv2givemail.1
 	@help2man -Nn "Send emails out en masse" src/givemail >src/givemail.1
+if USE_DB
 	@help2man -Nn "Monitor the campaigns database" src/givemaild >src/givemaild.1
+endif
 if HAVE_FASTCGI
 	@help2man -Nn "Manage WebAPI keys" src/webapi-key-manager >src/webapi-key-manager.1
 endif

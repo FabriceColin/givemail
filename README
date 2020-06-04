@@ -1,6 +1,6 @@
 Givemail
-Copyright 2008 Global Sign In
 Copyright 2009-2020 Fabrice Colin
+Copyright 2008 Global Sign In
 Base64.cc includes code Copyright 2005 Nokia Corporation.
 QuotedPrintable.cc includes code Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007 Free Software Foundation, Inc.
 
@@ -15,9 +15,9 @@ ctemplate			>= 0.95		http://code.google.com/p/google-ctemplate/
 MySQL				>= 4.0		http://www.mysql.com/
 mod_fcgid			>= 2.2		http://fastcgi.coremail.cn/
 OpenSSL				>= 0.9.7	http://www.openssl.org/
-cyrus-sasl						https://www.cyrusimap.org/sasl/
-doxygen							http://www.stack.nl/~dimitri/doxygen/index.html
-help2man						http://www.gnu.org/software/help2man
+cyrus-sasl					https://www.cyrusimap.org/sasl/
+doxygen						http://www.stack.nl/~dimitri/doxygen/index.html
+help2man					http://www.gnu.org/software/help2man
 autotools and g++ toolchain
 
 as well as one of:
