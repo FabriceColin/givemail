@@ -1,6 +1,6 @@
 Givemail
 Copyright 2008 Global Sign In
-Copyright 2009-2014 Fabrice Colin
+Copyright 2009-2020 Fabrice Colin
 Base64.cc includes code Copyright 2005 Nokia Corporation.
 QuotedPrintable.cc includes code Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007 Free Software Foundation, Inc.
 
@@ -10,18 +10,20 @@ Dependencies
 
 The following packages are required:
 
+libopendkim			>= 2.11.0	http://opendkim.org/
 ctemplate			>= 0.95		http://code.google.com/p/google-ctemplate/
-libdomainkeys			>= 0.69		http://domainkeys.sourceforge.net/
 MySQL				>= 4.0		http://www.mysql.com/
 mod_fcgid			>= 2.2		http://fastcgi.coremail.cn/
 OpenSSL				>= 0.9.7	http://www.openssl.org/
-doxygen						http://www.stack.nl/~dimitri/doxygen/index.html
-help2man					http://www.gnu.org/software/help2man
+cyrus-sasl						https://www.cyrusimap.org/sasl/
+doxygen							http://www.stack.nl/~dimitri/doxygen/index.html
+help2man						http://www.gnu.org/software/help2man
 autotools and g++ toolchain
 
-as well as one of the following:
+as well as one of:
 
-libetpan			>= 1.1		http://www.etpan.org/
+libetpan			>= 1.9.4	http://www.etpan.org/
+of
 libesmtp			>= 1.0.6	http://www.stafford.uklinux.net/libesmtp/
 
 Building Givemail
@@ -32,7 +34,7 @@ From the source repository :
 2. Generate configure and the initial make files
    For instance :
    $ ./autogen.sh --prefix=/usr --libdir=/usr/lib64 --enable-debug=yes \
-     --enable-libetpan=yes --with-libdomainkeys=/path/to/libdomainkeys-0.69
+     --enable-libetpan=yes
    Append "--enable-fastcgi=yes" to add support for FastCGI and build the WebAPI.
 3. Run make
 
@@ -41,7 +43,7 @@ From a source tarball :
 2. Run configure
    For instance :
    $ ./configure --prefix=/usr --libdir=/usr/lib64 --enable-debug=yes \
-     --enable-libetpan=yes --with-libdomainkeys=/path/to/libdomainkeys-0.69
+     --enable-libetpan=yes
 3. Run make
 
 
@@ -53,7 +55,6 @@ After building from source, run :
 
 or generate a source tarball of the current code, and build RPMs with :
    $ make dist
-   $ cp /path/to/libdomainkeys-0.69.tar.gz /path/to/rpmtree/SOURCES
    $ rpmbuild -ts givemail-version_number.tar.gz
    $ rpmbuild --rebuild /path/to/rpmtree/SRPMS/givemail-version_number.distro.src.rpm
    Append "--with mysql4" to calls to rpmbuild if you are on RHEL or a derivative (eg Centos).
