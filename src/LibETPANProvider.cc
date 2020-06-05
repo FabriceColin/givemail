@@ -909,22 +909,21 @@ string LibETPANMessage::getUserAgent(void) const
 	return PACKAGE_NAME "/etpan " PACKAGE_VERSION;
 }
 
-bool LibETPANMessage::addSignatureHeader(const string &header,
+bool LibETPANMessage::setSignatureHeader(const string &header,
 	const string &value)
 {
-	string signature(header);
-	signature += ": ";
-	signature += value;
+	if ((m_pString == NULL) ||
+		(SMTPMessage::setSignatureHeader(header, value) == false))
+	{
+		return false;
+	}
 
 	// Prepend the signature
+	m_pString = mmap_string_prepend_len(m_pString,
+		m_signatureHeader.c_str(), m_signatureHeader.length());
 	if (m_pString != NULL)
 	{
-		m_pString = mmap_string_prepend_len(m_pString,
-			signature.c_str(), signature.length());
-		if (m_pString != NULL)
-		{
-			return true;
-		}
+		return true;
 	}
 
 	return false;

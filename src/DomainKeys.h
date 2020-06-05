@@ -31,7 +31,7 @@ extern "C"
 #include "DomainAuth.h"
 #include "SMTPMessage.h"
 
-// DomainKeys support.
+/// DomainKeys based domain authenticator
 class DomainKeys : public DomainAuth
 {
 	public:

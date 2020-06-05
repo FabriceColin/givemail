@@ -26,7 +26,7 @@
 #include "ConfigurationFile.h"
 #include "SMTPMessage.h"
 
-// DomainAuth support.
+/// Domain authenticator
 class DomainAuth
 {
 	public:

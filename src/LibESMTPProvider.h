@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2014 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -54,8 +54,8 @@ class LibESMTPMessage : public SMTPMessage
 		/// Returns the User-Agent string.
 		virtual std::string getUserAgent(void) const;
 
-		/// Adds a signature header.
-		virtual bool addSignatureHeader(const std::string &header,
+		/// Sets the signature header.
+		virtual bool setSignatureHeader(const std::string &header,
 			const std::string &value);
 
 		/// Adds a header.

@@ -28,7 +28,7 @@
 #include "DomainAuth.h"
 #include "SMTPMessage.h"
 
-// OpenDKIM support.
+/// OpenDKIM based domain authenticator
 class OpenDKIM : public DomainAuth
 {
 	public:

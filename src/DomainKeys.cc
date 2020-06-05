@@ -235,7 +235,7 @@ bool DomainKeys::sign(const string &messageData,
 #endif
 	headerStr << "  b=" << signature << ";\r\n";
 
-	pMsg->addSignatureHeader("DomainKey-Signature", headerStr.str());
+	pMsg->setSignatureHeader("DomainKey-Signature", headerStr.str());
 
 	return true;
 }

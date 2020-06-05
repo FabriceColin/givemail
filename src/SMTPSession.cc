@@ -422,33 +422,29 @@ bool SMTPSession::isDiscarded(const ResourceRecord &aRecord)
 	return false;
 }
 
-void SMTPSession::signMessage(SMTPMessage *pMsg, DomainAuth &domainAuth)
+bool SMTPSession::signMessage(SMTPMessage *pMsg, DomainAuth &domainAuth)
 {
 	if (pMsg == NULL)
 	{
-		return;
+		return false;
 	}
 
 	string fullMessage(m_pProvider->getMessageData(pMsg));
-	string headerName, headerValue;
 
 	// Sign the message
-	if (domainAuth.canSign() == true)
+	if (domainAuth.sign(fullMessage, pMsg, false) == true)
 	{
-		if (domainAuth.sign(fullMessage, pMsg, false) == true)
-		{
-#ifdef DEBUG
-			clog << "SMTPSession::signMessage: signature is '" << headerName << ": " << headerValue << "'" << endl;
-#endif
+		string signatureHeader(pMsg->getSignatureHeader());
 
-			pMsg->addSignatureHeader(headerName, headerValue);
-		}
-		else
-		{
-		}
+#ifdef DEBUG
+		clog << "SMTPSession::signMessage: signature is '" << signatureHeader << endl;
+#endif
+		m_msgsDataSize += fullMessage.length() + signatureHeader.length();
+
+		return true;
 	}
 
-	m_msgsDataSize += fullMessage.length() + headerName.length() + headerValue.length() + 2;
+	return false;
 }
 
 string SMTPSession::getDomainName(void) const
@@ -803,13 +799,20 @@ bool SMTPSession::queueMessage(SMTPMessage *pMsg,
 		}
 
 		// Sign the message
-		signMessage(pMsg, domainAuth);
-
-		if (dispatchMessages(pUpdater, false) == false)
+		if (signMessage(pMsg, domainAuth) == false)
 		{
-			// Chances are this message wasn't delivered to anyone
+			// Signing is broken
 			serverOk = false;
 			break;
+		}
+		else
+		{
+			if (dispatchMessages(pUpdater, false) == false)
+			{
+				// Chances are this message wasn't delivered to anyone
+				serverOk = false;
+				break;
+			}
 		}
 	}
 

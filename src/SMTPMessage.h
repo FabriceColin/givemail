@@ -27,6 +27,7 @@
 
 #include "MessageDetails.h"
 
+/// Header of a SMTP message
 class SMTPHeader
 {
 	public:
@@ -41,7 +42,8 @@ class SMTPHeader
 		SMTPHeader &operator=(const SMTPHeader &other);
 
 };
-/// Interface for SMTP messages.
+
+/// Interface for SMTP messages
 class SMTPMessage
 {
 	public:
@@ -91,9 +93,12 @@ class SMTPMessage
 		/// Returns the User-Agent string.
 		virtual std::string getUserAgent(void) const;
 
-		/// Adds the signature header.
-		virtual bool addSignatureHeader(const std::string &header,
-			const std::string &value) = 0;
+		/// Sets the signature header.
+		virtual bool setSignatureHeader(const std::string &header,
+			const std::string &value);
+
+		/// Gets the signature header.
+		virtual std::string getSignatureHeader(void) const;
 
 		/// Adds a header, which will be signed.
 		virtual bool addHeader(const std::string &header,
@@ -112,6 +117,8 @@ class SMTPMessage
 		void dumpToFile(const std::string &fileBaseName) const;
 
 	protected:
+		std::string m_signatureHeader;
+
 		void substitute(const std::map<std::string, std::string> &fieldValues);
 
 		virtual void buildHeaders(void);

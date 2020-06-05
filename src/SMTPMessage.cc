@@ -179,7 +179,7 @@ void SMTPMessage::appendHeader(const string &header,
 	if (addHeader(header, value, path) == true)
 	{
 		// Build a colon separated list of headers
-		// That will be useful when signing the message
+		// This will be useful when signing the message with DomainKeys
 		if (m_allHeaders.empty() == false)
 		{
 			m_allHeaders.append(":");
@@ -281,6 +281,27 @@ string SMTPMessage::getUserAgent(void) const
 	}
 
 	return PACKAGE_NAME;
+}
+
+bool SMTPMessage::setSignatureHeader(const string &header,
+	const string &value)
+{
+	if ((header.empty() == true) ||
+		(value.empty() == true))
+	{
+		return false;
+	}
+
+	m_signatureHeader = header;
+	m_signatureHeader += ": ";
+	m_signatureHeader = value;
+
+	return true;
+}
+
+string SMTPMessage::getSignatureHeader(void) const
+{
+	return m_signatureHeader;
 }
 
 bool SMTPMessage::addHeader(const string &header,

@@ -305,7 +305,7 @@ bool OpenDKIM::sign(const string &messageData,
 
     headerStr << signature;
 
-	pMsg->addSignatureHeader("DKIM-Signature", headerStr.str());
+	pMsg->setSignatureHeader("DKIM-Signature", headerStr.str());
 
 	return true;
 }

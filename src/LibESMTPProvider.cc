@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2014 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -741,19 +741,16 @@ string LibESMTPMessage::getUserAgent(void) const
 	return PACKAGE_NAME"/esmtp "PACKAGE_VERSION;
 }
 
-bool LibESMTPMessage::addSignatureHeader(const string &header,
+bool LibESMTPMessage::setSignatureHeader(const string &header,
 	const string &value)
 {
-	string signatureHeader(header);
-
-	if ((header.empty() == true) ||
-		(value.empty() == true))
+	if (SMTPMessage::setSignatureHeader(header, value) == false)
 	{
 		return false;
 	}
 
-	signatureHeader += ": ";
-	signatureHeader += value;
+	// Prepend the signature
+	m_headersDump.insert(0, m_signatureHeader);
 
 	return true;
 }
