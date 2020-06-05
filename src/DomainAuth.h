@@ -34,7 +34,7 @@ class DomainAuth
 		virtual ~DomainAuth();
 
 		/// Loads the private key for the given domain name.
-		virtual bool loadPrivateKey(ConfigurationFile *pConfig) = 0;
+		virtual bool loadPrivateKey(ConfigurationFile *pConfig);
 
 		/// Returns true if messages can be signed.
 		virtual bool canSign(void) const = 0;

@@ -27,7 +27,6 @@
 #include <sstream>
 
 #include "OpenDKIM.h"
-#include "MessageDetails.h"
 
 //#define _DEBUG_FEEDING
 #define JOBID "givemail-OpenDKIM"
@@ -172,31 +171,15 @@ bool OpenDKIM::feedMessage(const string &messageData,
 
 bool OpenDKIM::loadPrivateKey(ConfigurationFile *pConfig)
 {
-	if (m_pPrivateKey != NULL)
-	{
-		delete[] m_pPrivateKey;
-		m_pPrivateKey = NULL;
-	}
-
 	if ((pConfig == NULL) ||
-		(pConfig->m_dkPrivateKey.empty() == true) ||
-		(pConfig->m_dkDomain.empty() == true) ||
-		(pConfig->m_dkSelector.empty() == true))
+		(pConfig->m_dkSelector.empty() == true) ||
+		(DomainAuth::loadPrivateKey(pConfig) == false))
 	{
 		return false;
 	}
 
-	// Load the private key
-	off_t keySize = 0;
-	m_pPrivateKey = MessageDetails::loadRaw(pConfig->m_dkPrivateKey, keySize);
-	if (m_pPrivateKey == NULL)
-	{
-		return false;
-	}
-
-	m_privateKeyFileName = pConfig->m_dkPrivateKey;
-	m_domainName = pConfig->m_dkDomain;
 	m_selector = pConfig->m_dkSelector;
+	m_privateKeyFileName = pConfig->m_dkPrivateKey;
 
 	return true;
 }

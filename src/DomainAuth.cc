@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
  */
 
 #include "DomainAuth.h"
+#include "MessageDetails.h"
 
 DomainAuth::DomainAuth() :
 	m_pPrivateKey(NULL)
@@ -31,5 +32,34 @@ DomainAuth::~DomainAuth()
 	{
 		delete[] m_pPrivateKey;
 	}
+}
+
+bool DomainAuth::loadPrivateKey(ConfigurationFile *pConfig)
+{
+	if ((pConfig == NULL) ||
+		(pConfig->m_dkPrivateKey.empty() == true) ||
+		(pConfig->m_dkDomain.empty() == true))
+	{
+		return false;
+	}
+
+	// Free any previously loaded key
+	if (m_pPrivateKey != NULL)
+	{
+		delete[] m_pPrivateKey;
+		m_pPrivateKey = NULL;
+	}
+
+	// Load the private key
+	off_t keySize = 0;
+	m_pPrivateKey = MessageDetails::loadRaw(pConfig->m_dkPrivateKey, keySize);
+	if (m_pPrivateKey == NULL)
+	{
+		return false;
+	}
+
+	m_domainName = pConfig->m_dkDomain;
+
+	return true;
 }
 

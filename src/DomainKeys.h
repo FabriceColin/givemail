@@ -47,9 +47,6 @@ class DomainKeys : public DomainAuth
 		/// Cleans up the current thread's state.
 		static void cleanupThread(void);
 
-		/// Loads the private key for the given domain name.
-		virtual bool loadPrivateKey(ConfigurationFile *pConfig);
-
 		/// Returns true if messages can be signed.
 		virtual bool canSign(void) const;
 

@@ -28,7 +28,6 @@
 #include <sstream>
 
 #include "DomainKeys.h"
-#include "MessageDetails.h"
 
 //#define _DEBUG_FEEDING
 //#define _MUST_ADD_HEADERS_LIST
@@ -49,35 +48,6 @@ DomainKeys::DomainKeys() :
 
 DomainKeys::~DomainKeys()
 {
-}
-
-bool DomainKeys::loadPrivateKey(ConfigurationFile *pConfig)
-{
-	if (m_pPrivateKey != NULL)
-	{
-		delete[] m_pPrivateKey;
-		m_pPrivateKey = NULL;
-	}
-
-	if ((pConfig == NULL) ||
-		(pConfig->m_dkPrivateKey.empty() == true) ||
-		(pConfig->m_dkDomain.empty() == true))
-	{
-		return false;
-	}
-
-	// Load the private key
-	off_t keySize = 0;
-	m_pPrivateKey = MessageDetails::loadRaw(pConfig->m_dkPrivateKey, keySize);
-	if (m_pPrivateKey == NULL)
-	{
-		return false;
-	}
-
-	m_privateKeyFileName = pConfig->m_dkPrivateKey;
-	m_domainName = pConfig->m_dkDomain;
-
-	return true;
 }
 
 bool DomainKeys::initialize(void)
