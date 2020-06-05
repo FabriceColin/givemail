@@ -755,9 +755,6 @@ bool LibESMTPMessage::addSignatureHeader(const string &header,
 	signatureHeader += ": ";
 	signatureHeader += value;
 
-	// Add this as the top header
-	m_allHeaders.insert(0, signatureHeader);
-
 	return true;
 }
 
