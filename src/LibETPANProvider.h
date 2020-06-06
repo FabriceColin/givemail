@@ -55,6 +55,10 @@ class LibETPANMessage : public SMTPMessage
 		virtual bool setSignatureHeader(const std::string &header,
 			const std::string &value);
 
+		/// Adds a header, which will be signed.
+		virtual bool addHeader(const std::string &header,
+			const std::string &value, const std::string &path);
+
 		/// Sets the DSN Env Id.
 		virtual void setEnvId(const std::string &dsnEnvId);
 

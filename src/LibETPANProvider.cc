@@ -880,7 +880,7 @@ bool LibETPANMessage::serialize(size_t messageSizeEstimate,
 		m_pString = NULL;
 	}
 #ifdef DEBUG
-	clog << "LibETPANMessage::serialize: estimated message size to " << messageSizeEstimate << endl;
+	clog << "LibETPANMessage::serialize: estimated message size to " << messageSizeEstimate << " +/- 4096" << endl;
 #endif
 
 	// Hopefully that mmap'ed string is long enough
@@ -929,6 +929,18 @@ bool LibETPANMessage::setSignatureHeader(const string &header,
 	return false;
 }
 
+bool LibETPANMessage::addHeader(const string &header,
+	const string &value, const string &path)
+{
+	// This is provided out of the box
+	if (header == "MIME-Version")
+	{
+		return true;
+	}
+
+	return SMTPMessage::addHeader(header, value, path);
+}
+
 void LibETPANMessage::setEnvId(const string &dsnEnvId)
 {
 	m_dsnEnvId = dsnEnvId;
@@ -972,7 +984,7 @@ bool LibETPANMessage::buildMessage(void)
 		// Headers will definitely fit in 4kB
 		size_t messageSizeEstimate = 4096;
 
-		mailmime_set_imf_fields(pMessage, pFields);
+		mailmime_set_imf_fields(pTop, pFields);
 
 		if (isDeliveryReceipt() == true)
 		{
@@ -1240,7 +1252,7 @@ string LibETPANProvider::getMessageData(SMTPMessage *pMsg)
 		messageData.assign(pETPANMsg->m_pString->str, pETPANMsg->m_pString->len);
 	}
 #ifdef DEBUG
-	else clog << "LibETPANProvider::getMessageData: no message string" << endl;
+	clog << "LibETPANProvider::getMessageData: message is " << messageData << endl;
 #endif
 
 	return messageData;
