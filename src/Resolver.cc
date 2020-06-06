@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -141,11 +141,14 @@ static void addNameResourceRecords(const string &domainName, time_t queryTime,
 			hostName.resize(hostName.length() - 1);
 		}
 
-		clog << "Found resource " << hostName << ", type " << type
-			<< " for " << domainName << endl;
+		if (hostName.empty() == false)
+		{
+			clog << "Found resource " << hostName << ", type " << type
+				<< " for " << domainName << endl;
 
-		servers.insert(ResourceRecord(domainName, priority, hostName,
-			max((int)ns_rr_ttl(rr), 60), queryTime));
+			servers.insert(ResourceRecord(domainName, priority, hostName,
+				max((int)ns_rr_ttl(rr), 60), queryTime));
+		}
 	}
 }
 
