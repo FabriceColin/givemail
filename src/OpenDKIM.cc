@@ -27,8 +27,10 @@
 #include <sstream>
 
 #include "OpenDKIM.h"
+#include "MessageDetails.h"
 
 //#define _DEBUG_FEEDING
+#define DK_HEADER_NAME "DKIM-Signature"
 #define JOBID "givemail-OpenDKIM"
 
 using std::clog;
@@ -37,6 +39,32 @@ using std::string;
 using std::vector;
 using std::stringstream;
 using std::ofstream;
+
+static DKIM_STAT keyLookup(DKIM *dkim, DKIM_SIGINFO *sig, unsigned char *buf, size_t buflen)
+{
+	ConfigurationFile *pConfig = ConfigurationFile::getInstance("");
+
+	if ((buf != NULL) &&
+		(pConfig != NULL) &&
+		(pConfig->m_dkPublicKey.empty() == false))
+	{
+		off_t keySize = 0;
+
+		memset(buf, '\0', buflen);
+
+		char *pPublicKey = MessageDetails::loadRaw(pConfig->m_dkPublicKey, keySize);
+		if (pPublicKey != NULL)
+		{
+#ifdef DEBUG
+			clog << "OpenDKIM: serving public key at " << pConfig->m_dkPublicKey << endl;
+#endif
+
+			strncpy(reinterpret_cast<char*>(buf), pPublicKey, buflen);
+		}
+	}
+
+	return DKIM_STAT_OK;
+}
 
 DKIM_LIB *OpenDKIM::m_pLib = NULL;
 
@@ -48,6 +76,24 @@ OpenDKIM::OpenDKIM() :
 
 OpenDKIM::~OpenDKIM()
 {
+}
+
+bool OpenDKIM::feedHeader(const string &header)
+{
+	if (m_pObj == NULL)
+	{
+		return false;
+	}
+
+	DKIM_STAT status = dkim_header(m_pObj, reinterpret_cast<u_char*>(const_cast<char*>(header.c_str())), header.length());
+
+	if (status != DKIM_STAT_OK)
+	{
+		clog << "OpenDKIM: status " << status << " on header " << header << endl;
+		return false;
+	}
+
+	return true;
 }
 
 bool OpenDKIM::feedMessage(const string &messageData,
@@ -103,10 +149,9 @@ bool OpenDKIM::feedMessage(const string &messageData,
 #ifdef _DEBUG_FEEDING
 		dataFile << header;
 #endif
-		status = dkim_header(m_pObj, reinterpret_cast<u_char*>(const_cast<char*>(header.c_str())), header.length());
-		if (status != DKIM_STAT_OK)
+
+		if (feedHeader(header) == false)
 		{
-			clog << "OpenDKIM: status " << status << " on header " << headerName << ": " << value << endl;
 			break;
 		}
 	}
@@ -255,8 +300,8 @@ bool OpenDKIM::sign(const string &messageData,
 
 	dkim_options(m_pLib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYMETHOD,
 		&queryType, sizeof(queryType));
-	//dkim_options(m_pLib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYINFO,
-	//	m_privateKeyFileName.c_str(), m_privateKeyFileName.length());
+	dkim_options(m_pLib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYINFO,
+		const_cast<char*>(m_privateKeyFileName.c_str()), m_privateKeyFileName.length());
 	dkim_options(m_pLib, DKIM_OP_SETOPT, DKIM_OPTS_FIXEDTIME,
 		&fixedTime, sizeof(fixedTime));
 	dkim_options(m_pLib, DKIM_OP_SETOPT, DKIM_OPTS_SIGNHDRS,
@@ -276,7 +321,7 @@ bool OpenDKIM::sign(const string &messageData,
 	}
 	if (m_pObj == NULL)
 	{
-		clog << "OpenDKIM: signing failed with status " << status << endl;
+		clog << "OpenDKIM: sign failed with status " << status << endl;
 		return false;
 	}
 	if (status != DKIM_STAT_OK)
@@ -308,7 +353,7 @@ bool OpenDKIM::sign(const string &messageData,
 		return false;
 	}
 
-	pMsg->setSignatureHeader("DKIM-Signature", headerStr.str());
+	pMsg->setSignatureHeader(DK_HEADER_NAME, headerStr.str());
 
 	return true;
 }
@@ -328,14 +373,14 @@ bool OpenDKIM::verify(const string &messageData,
 
 	dkim_options(m_pLib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYMETHOD,
 		&queryType, sizeof(queryType));
-	//dkim_options(m_pLib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYINFO,
-	//	m_privateKeyFileName.c_str(), m_privateKeyFileName.length());
+	dkim_options(m_pLib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYINFO,
+		const_cast<char*>(m_privateKeyFileName.c_str()), m_privateKeyFileName.length());
 
 	m_pObj = dkim_verify(m_pLib, reinterpret_cast<const unsigned char*>(JOBID), NULL, &status);
 
 	if (m_pObj == NULL)
 	{
-		clog << "OpenDKIM: verification failed with status " << status << endl;
+		clog << "OpenDKIM: verify failed with status " << status << endl;
 		return false;
 	}
 	if (status != DKIM_STAT_OK)
@@ -346,14 +391,34 @@ bool OpenDKIM::verify(const string &messageData,
 		return false;
 	}
 
+	dkim_set_key_lookup(m_pLib, keyLookup);
+
+	feedHeader(pMsg->getSignatureHeader());
 	if (feedMessage(messageData, pMsg) == false)
 	{
 		return false;
 	}
 
 	DKIM_SIGINFO *pSig = dkim_getsignature(m_pObj);
+	DKIM_SIGERROR error = DKIM_SIGERROR_UNKNOWN;
+
+	if (pSig != NULL)
+	{
+		error = dkim_sig_geterror(pSig);
+	}
+	else
+	{
+		clog << "OpenDKIM: failed to get signature object" << endl;
+	}
 
 	dkim_free(m_pObj);
+
+	if (error != DKIM_SIGERROR_OK)
+	{
+		clog << "OpenDKIM: signature verification error " << error << endl;
+
+		return false;
+	}
 
 	return true;
 }

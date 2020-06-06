@@ -31,6 +31,7 @@
 
 //#define _DEBUG_FEEDING
 //#define _MUST_ADD_HEADERS_LIST
+#define DK_HEADER_NAME "DomainKey-Signature"
 
 using std::clog;
 using std::endl;
@@ -204,7 +205,7 @@ bool DomainKeys::sign(const string &messageData,
 #endif
 	headerStr << "  b=" << signature << ";\r\n";
 
-	pMsg->setSignatureHeader("DomainKey-Signature", headerStr.str());
+	pMsg->setSignatureHeader(DK_HEADER_NAME, headerStr.str());
 
 	return true;
 }

@@ -66,6 +66,8 @@ class OpenDKIM : public DomainAuth
 		std::string m_privateKeyFileName;
 		DKIM *m_pObj;
 
+		bool feedHeader(const std::string &header);
+
 		bool feedMessage(const std::string &messageData,
 			SMTPMessage *pMsg);
 
