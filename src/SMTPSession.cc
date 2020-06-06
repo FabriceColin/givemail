@@ -542,7 +542,7 @@ bool SMTPSession::generateMessages(DomainAuth &domainAuth,
 	{
 		return true;
 	}
-	clog << destinations.size() << " destinations on domain " << m_domainLimits.m_domainName << endl;
+	clog << destinations.size() << " recipients on domain " << m_domainLimits.m_domainName << endl;
 
 	Timer generationTimer;
 	SMTPMessage::DSNNotification dsnNotify = SMTPMessage::NEVER;
@@ -621,13 +621,14 @@ bool SMTPSession::generateMessages(DomainAuth &domainAuth,
 		}
 	}
 	clog << "Queued " << messages.size() << " messages (" << m_msgsDataSize
-		<< " bytes) for domain " << m_domainLimits.m_domainName
+		<< " signed bytes) for domain " << m_domainLimits.m_domainName
 		<< " in " << generationTimer.stop() / 1000 << " seconds" << endl;
 
 	generationTimer.start();
 
 	// Force a send
-	if (dispatchMessages(pUpdater, true) == false)
+	if ((m_msgsDataSize == 0) ||
+		(dispatchMessages(pUpdater, true) == false))
 	{
 		messageOk = false;
 	}
