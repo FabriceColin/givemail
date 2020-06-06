@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<fields version="2">
+	<subject>This is a test</subject>
+	<from>
+		<name>Me</name>
+		<emailaddress>me@example.com</emailaddress>
+	</from>
+	<sender>me@example.com</sender>
+	<to/>
+	<cc/>
+	<reporttype/>
+	<useragent>Givemail</useragent>
+	<xmailer/>
+	<plaintext encoding="utf-8">Hello there</plaintext>
+	<html/>
+	<customfield/>
+</fields>
