@@ -10,7 +10,7 @@ Dependencies
 
 The following packages are required:
 
-libopendkim			>= 2.11.0	http://opendkim.org/
+libopendkim			>= 2.10.0	http://opendkim.org/
 ctemplate			>= 0.95		http://code.google.com/p/google-ctemplate/
 MySQL				>= 4.0		http://www.mysql.com/
 mod_fcgid			>= 2.2		http://fastcgi.coremail.cn/

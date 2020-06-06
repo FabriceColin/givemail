@@ -32,8 +32,8 @@ Requires:	%{_libdir}/libresolv.so
 %if 0%{?_with_webapi:1}
 BuildRequires:	fcgi-devel
 %endif
-Requires:	libopendkim >= 2.11.0, ctemplate >= 0.95
-BuildRequires:	libopendkim-devel >= 2.11.0, ctemplate-devel >= 0.95
+Requires:	libopendkim >= 2.10.0, ctemplate >= 0.95
+BuildRequires:	libopendkim-devel >= 2.10.0, ctemplate-devel >= 0.95
 BuildRequires:	curl-devel, openssl-devel >= 0.9.7
 BuildRequires:	gcc-c++, doxygen
 
