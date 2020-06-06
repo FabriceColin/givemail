@@ -54,6 +54,7 @@ class ConfigurationFile
 		std::string m_userName;
 		std::string m_password;
 		std::string m_dkPrivateKey;
+		std::string m_dkPublicKey;
 		std::string m_dkDomain;
 		std::string m_dkSelector;
 		bool m_threaded;

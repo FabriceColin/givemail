@@ -260,6 +260,10 @@ bool ConfigurationFile::parse(void)
 					{
 						m_dkPrivateKey = childNodeContent;
 					}
+					else if (xmlStrncmp(pCurrentSlaveNode->name, BAD_CAST"dkpublickey", 12) == 0)
+					{
+						m_dkPublicKey = childNodeContent;
+					}
 					else if (xmlStrncmp(pCurrentSlaveNode->name, BAD_CAST"dkdomain", 8) == 0)
 					{
 						m_dkDomain = childNodeContent;
