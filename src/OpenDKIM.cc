@@ -55,7 +55,31 @@ bool OpenDKIM::feedMessage(const string &messageData,
 {
 	DKIM_STAT status;
 
+	if ((messageData.empty() == true) ||
+		(pMsg == NULL))
+	{
+		return false;
+	}
+
+	string::size_type startOfMessage = messageData.find("\r\n\r\n");
+
+	if (startOfMessage == string::npos)
+	{
+		startOfMessage = 0;
+	}
+	else
+	{
+		startOfMessage += 4;
+	}
+
+#ifdef _DEBUG_FEEDING
+	ofstream dataFile("data.txt");
+#endif
+
 	// Feed headers
+#ifdef DEBUG
+	clog << "OpenDKIM::feedMessage: " << pMsg->m_headers.size() << " headers" << endl;
+#endif
 	for (vector<SMTPHeader>::const_iterator headerIter = pMsg->m_headers.begin();
 		headerIter != pMsg->m_headers.end(); ++headerIter)
 	{
@@ -76,10 +100,13 @@ bool OpenDKIM::feedMessage(const string &messageData,
 		headerStr << "\r\n";
 		string header(headerStr.str());
 
+#ifdef _DEBUG_FEEDING
+		dataFile << header;
+#endif
 		status = dkim_header(m_pObj, reinterpret_cast<u_char*>(const_cast<char*>(header.c_str())), header.length());
 		if (status != DKIM_STAT_OK)
 		{
-			clog << "OpenDKIM: status " << status << endl;
+			clog << "OpenDKIM: status " << status << " on header " << headerName << ": " << value << endl;
 			break;
 		}
 	}
@@ -87,15 +114,15 @@ bool OpenDKIM::feedMessage(const string &messageData,
 	status = dkim_eoh(m_pObj);
 	if (status != DKIM_STAT_OK)
 	{
-		clog << "OpenDKIM: status " << status << endl;
+		clog << "OpenDKIM: headers status " << status << endl;
 	}
-
 #ifdef _DEBUG_FEEDING
-	ofstream dataFile("data.txt");
+		dataFile << "\r\n";
 #endif
+
 	// Feed the message data, line by line
-	string::size_type startPos = 0, pos = messageData.find_first_of("\r\n");
-	string::size_type messageDataLen = messageData.length();
+	string::size_type startPos = startOfMessage, pos = messageData.find_first_of("\r\n", startOfMessage);
+	string::size_type messageDataLen = messageData.length() - startOfMessage;
 	while (pos != string::npos)
 	{
 		if (pos != startPos)
@@ -103,7 +130,7 @@ bool OpenDKIM::feedMessage(const string &messageData,
 			status = dkim_body(m_pObj, reinterpret_cast<u_char*>(const_cast<char*>(messageData.c_str() + startPos)), pos - startPos);
 			if (status != DKIM_STAT_OK)
 			{
-					clog << "OpenDKIM: status " << status << endl;
+					clog << "OpenDKIM: body status " << status << endl;
 					break;
 			}
 #ifdef _DEBUG_FEEDING
@@ -120,7 +147,7 @@ bool OpenDKIM::feedMessage(const string &messageData,
 		{
 			startPos = pos + 1;
 		}
-		if (startPos >= messageDataLen)
+		if (startPos >= messageData.length())
 		{
 			break;
 		}
@@ -128,7 +155,7 @@ bool OpenDKIM::feedMessage(const string &messageData,
 		status = dkim_body(m_pObj, reinterpret_cast<u_char*>(const_cast<char*>("\r\n")), 2);
 		if (status != DKIM_STAT_OK)
 		{
-				clog << "OpenDKIM: status " << status << endl;
+				clog << "OpenDKIM: body status " << status << endl;
 				break;
 		}
 #ifdef _DEBUG_FEEDING
@@ -141,7 +168,7 @@ bool OpenDKIM::feedMessage(const string &messageData,
 		status = dkim_body(m_pObj, reinterpret_cast<u_char*>(const_cast<char*>(messageData.c_str() + startPos)), messageDataLen - startPos);
 		if (status != DKIM_STAT_OK)
 		{
-				clog << "OpenDKIM: status " << status << endl;
+				clog << "OpenDKIM: body status " << status << endl;
 		}
 #ifdef _DEBUG_FEEDING
 		dataFile << string(messageData.c_str() + startPos);
@@ -151,20 +178,13 @@ bool OpenDKIM::feedMessage(const string &messageData,
 	status = dkim_eom(m_pObj, NULL);
 	if (status != DKIM_STAT_OK)
 	{
-		clog << "OpenDKIM: status " << status << endl;
+		clog << "OpenDKIM: end of message status " << status << endl;
 	}
 
 #ifdef _DEBUG_FEEDING
 	dataFile << "\r\n";
 	dataFile.close();
 #endif
-
-	// Did any error occur?
-	if (status != DKIM_STAT_OK)
-	{
-		clog << "OpenDKIM: status " << status << endl;
-		return false;
-	}
 
 	return true;
 }
@@ -263,7 +283,7 @@ bool OpenDKIM::sign(const string &messageData,
 	{
 		dkim_free(m_pObj);
 
-		clog << "OpenDKIM: status " << status << endl;
+		clog << "OpenDKIM: sign status " << status << endl;
 		return false;
 	}
 
@@ -278,15 +298,15 @@ bool OpenDKIM::sign(const string &messageData,
 
 	dkim_free(m_pObj);
 
-	if (status != DKIM_STAT_OK)
-	{
-		clog << "OpenDKIM: status " << status << endl;
-		return false;
-	}
-
     stringstream headerStr;
 
     headerStr << signature;
+
+	if (status != DKIM_STAT_OK)
+	{
+		clog << "OpenDKIM: status " << status << " on signature header " << headerStr.str() << endl;
+		return false;
+	}
 
 	pMsg->setSignatureHeader("DKIM-Signature", headerStr.str());
 
@@ -322,7 +342,7 @@ bool OpenDKIM::verify(const string &messageData,
 	{
 		dkim_free(m_pObj);
 
-		clog << "OpenDKIM: status " << status << endl;
+		clog << "OpenDKIM: verify status " << status << endl;
 		return false;
 	}
 
