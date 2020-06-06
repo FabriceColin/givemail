@@ -564,7 +564,7 @@ void *workerUnitFunc(void *pArg)
 		}
 		else
 		{
-			clog << RunUnits::getId() << " skipping domain " << domainName << endl;
+			cout << RunUnits::getId() << " skipping domain " << domainName << endl;
 
 			statusUpdater.updateRecipientsStatus(domainName, 0, "No MX record");
 		}

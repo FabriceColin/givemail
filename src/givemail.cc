@@ -404,7 +404,7 @@ void *workerThreadFunc(void *pArg)
 		}
 		else
 		{
-			clog << "Skipping domain " << domainName << endl;
+			cout << "Skipping domain " << domainName << endl;
 
 			DBStatusUpdater updater(g_pDb, pThreadArg->m_campaignId);
 			updater.updateRecipientsStatus(domainName, 0, "No MX record");
@@ -544,7 +544,7 @@ static bool runSlave(const string &campaignId, const string &slaveId)
 				}
 				else
 				{
-					clog << "Skipping domain " << domainName << endl;
+					cout << "Skipping domain " << domainName << endl;
 
 					DBStatusUpdater updater(g_pDb, campaignId);
 					updater.updateRecipientsStatus(domainName, 0, "No MX record");
@@ -745,10 +745,16 @@ int main(int argc, char **argv)
 		(checkForSpam == true))
 	{
 		campaignId = argv[optind];
+#ifdef DEBUG
+		cout << "Campaign " << campaignId << endl;
+#endif
 	}
 	else
 	{
 		domainName = argv[optind];
+#ifdef DEBUG
+		cout << "Domain name " << domainName << endl;
+#endif
 	}
 
 #if defined(ENABLE_NLS)
@@ -864,7 +870,7 @@ int main(int argc, char **argv)
 	{
 		if ((argc - optind - 1) % 2)
 		{
-			cerr << "An even number of email addresses and names is required" << endl;
+			cerr << "An even number of email addresses and names is required, not " << (argc - optind - 1) << endl;
 			return EXIT_FAILURE;
 		}
 
@@ -873,6 +879,9 @@ int main(int argc, char **argv)
 			string emailAddress(argv[recipIndex]);
 			string name(argv[recipIndex]);
 
+#ifdef DEBUG
+			cout << "Email address " << emailAddress << " for " << name << endl;
+#endif
 			if (recipIndex + 1 < argc)
 			{
 				name = argv[recipIndex + 1];
