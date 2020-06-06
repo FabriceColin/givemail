@@ -64,11 +64,21 @@ SMTPSession::SMTPSession(const DomainLimits &domainLimits,
 	m_msgsDataSize(0),
 	m_pProvider(SMTPProviderFactory::getProvider()),
 	m_topPriority(1000000),
+	m_verifySignatures(false),
 	m_dontSend(false),
 	m_mutexSessions(false),
 	m_errorNum(-1)
 {
-	char *pEnvVar = getenv("GIVEMAIL_DONT_SEND");
+	char *pEnvVar = getenv("GIVEMAIL_VERIFY_SIGNATURES");
+
+	// This enables signature verifications
+	if ((pEnvVar != NULL) &&
+		(strncasecmp(pEnvVar, "Y", 1) == 0))
+	{
+		m_verifySignatures = true;
+	}
+
+	pEnvVar = getenv("GIVEMAIL_DONT_SEND");
 
 	// This deactivates sending
 	if ((pEnvVar != NULL) &&
@@ -442,7 +452,8 @@ bool SMTPSession::signMessage(SMTPMessage *pMsg, DomainAuth &domainAuth)
 	string fullMessage(m_pProvider->getMessageData(pMsg));
 
 	// Sign the message
-	if (domainAuth.sign(fullMessage, pMsg, false) == true)
+	if ((domainAuth.sign(fullMessage, pMsg, false) == true) &&
+		((m_verifySignatures == false) || (domainAuth.verify(fullMessage, pMsg) == true)))
 	{
 		string signatureHeader(pMsg->getSignatureHeader());
 

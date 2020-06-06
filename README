@@ -100,6 +100,9 @@ To test the engine, run :
 To enable debugging (libetpan only), run :
    $ export GIVEMAIL_DEBUG=Y
 
+To enable the verification of all signatures, run :
+   $ export GIVEMAIL_VERIFY_SIGNATURES=Y
+
 To disable sending of any message, run :
    $ export GIVEMAIL_DONT_SEND=Y
 

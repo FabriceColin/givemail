@@ -98,6 +98,7 @@ class SMTPSession
 		int m_topPriority;
 		std::queue<ResourceRecord> m_topQueue;
 		std::set<std::string> m_discarded;
+		bool m_verifySignatures;
 		bool m_dontSend;
 		bool m_mutexSessions;
 		int m_errorNum;
