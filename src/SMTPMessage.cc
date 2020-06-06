@@ -294,7 +294,7 @@ bool SMTPMessage::setSignatureHeader(const string &header,
 
 	m_signatureHeader = header;
 	m_signatureHeader += ": ";
-	m_signatureHeader = value;
+	m_signatureHeader += value;
 
 	return true;
 }
