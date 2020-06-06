@@ -136,6 +136,11 @@ bool SMTPSession::createSession(void)
 		enableTLS = m_options.m_mailRelayTLS;
 	}
 
+	if (m_pProvider == NULL)
+	{
+		return false;
+	}
+
 	if (m_pProvider->hasSession() == false)
 	{
 		// Cycle to the next server
@@ -166,7 +171,10 @@ bool SMTPSession::createSession(void)
 
 void SMTPSession::destroySession(void)
 {
-	m_pProvider->destroySession();
+	if (m_pProvider != NULL)
+	{
+		m_pProvider->destroySession();
+	}
 }
 
 bool SMTPSession::initializeAddresses(ResourceRecord &mxRecord)
@@ -310,7 +318,8 @@ bool SMTPSession::queueNextPriorityRecords(void)
 
 bool SMTPSession::setServer(ResourceRecord &mxRecord)
 {
-	if (mxRecord.m_hostName.empty() == true)
+	if ((m_pProvider == NULL) ||
+		(mxRecord.m_hostName.empty() == true))
 	{
 		return false;
 	}
@@ -424,7 +433,8 @@ bool SMTPSession::isDiscarded(const ResourceRecord &aRecord)
 
 bool SMTPSession::signMessage(SMTPMessage *pMsg, DomainAuth &domainAuth)
 {
-	if (pMsg == NULL)
+	if ((pMsg == NULL) ||
+		(m_pProvider == NULL))
 	{
 		return false;
 	}
@@ -522,7 +532,8 @@ bool SMTPSession::generateMessages(DomainAuth &domainAuth,
 	set<SMTPMessage *> messages;
 	bool messageOk = true;
 
-	if (pDetails == NULL)
+	if ((pDetails == NULL) ||
+		(m_pProvider == NULL))
 	{
 		return false; 
 	}
@@ -662,7 +673,8 @@ bool SMTPSession::queueMessage(SMTPMessage *pMsg,
 	bool serverOk = true;
 
 	// Create, if necessary
-	if (createSession() == false)
+	if ((m_pProvider == NULL) ||
+		(createSession() == false))
 	{
 		return false;
 	}
@@ -823,7 +835,8 @@ bool SMTPSession::dispatchMessages(StatusUpdater *pUpdater, bool force)
 {
 	bool serverOk = true;
 
-	if (m_msgsCount == 0)
+	if ((m_pProvider == NULL) ||
+		(m_msgsCount == 0))
 	{
 		// No message queued
 		return true;
@@ -935,7 +948,8 @@ bool SMTPSession::dispatchMessages(StatusUpdater *pUpdater, bool force)
 string SMTPSession::dumpMessage(SMTPMessage *pMsg,
 	const string &dummyName, const string &dummyEmailAddress)
 {
-	if (pMsg == NULL)
+	if ((pMsg == NULL) ||
+		(m_pProvider == NULL))
 	{
 		return "";
 	}
@@ -951,8 +965,11 @@ string SMTPSession::dumpMessage(SMTPMessage *pMsg,
 
 void SMTPSession::setError(int errNum)
 {
-	m_errorNum = errNum;
-	m_errorMsg = m_pProvider->getErrorMessage(m_errorNum);
+	if (m_pProvider != NULL)
+	{
+		m_errorNum = errNum;
+		m_errorMsg = m_pProvider->getErrorMessage(m_errorNum);
+	}
 }
 
 void SMTPSession::recordError(bool reset)
@@ -964,8 +981,11 @@ void SMTPSession::recordError(bool reset)
 		return;
 	}
 
-	setError(m_pProvider->getCurrentError());
-	clog << "SMTP error " << m_errorNum << ": " << m_errorMsg << endl;
+	if (m_pProvider != NULL)
+	{
+		setError(m_pProvider->getCurrentError());
+		clog << "SMTP error " << m_errorNum << ": " << m_errorMsg << endl;
+	}
 }
 
 int SMTPSession::getError(string &msg) const
@@ -977,6 +997,11 @@ int SMTPSession::getError(string &msg) const
 
 bool SMTPSession::isInternalError(int errNum)
 {
+	if (m_pProvider == NULL)
+	{
+		return true;
+	}
+
 	return m_pProvider->isInternalError(errNum);
 }
 

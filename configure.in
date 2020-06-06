@@ -133,23 +133,46 @@ esac
 AC_SUBST(HTTP_CFLAGS)
 AC_SUBST(HTTP_LIBS)
 
+dnl cyrus-sasl
+PKG_CHECK_MODULES(SASL, libsasl2)
+AC_SUBST(SASL_CFLAGS)
+AC_SUBST(SASL_LIBS)
+
 dnl OpenDKIM
-PKG_CHECK_MODULES(OPENDKIM, opendkim >= 2.11.0)
+PKG_CHECK_MODULES(OPENDKIM, opendkim >= 2.10.0)
 AC_SUBST(OPENDKIM_CFLAGS)
 AC_SUBST(OPENDKIM_LIBS)
 
+dnl libetpan
+AM_CONDITIONAL(USE_LIBETPAN, true)
+AC_MSG_CHECKING(whether to enable libetpan support)
+AC_ARG_ENABLE(libetpan,
+   [AS_HELP_STRING([--enable-libetpan], [enable libetpan support [default=no]])],
+   ,[enable_libetpan=no])
+AC_MSG_RESULT($enable_libetpan)
+if test "x$enable_libetpan" = "xyes"; then
+   PKG_CHECK_MODULES(LIBETPAN, libetpan)
+   SMTP_CFLAGS="-DUSE_LIBETPAN"
+   AC_SUBST(LIBETPAN_CFLAGS)
+   AC_SUBST(LIBETPAN_LIBS)
+else
+   AM_CONDITIONAL(USE_LIBETPAN, false)
+   LIBETPAN_CFLAGS=""
+   LIBETPAN_LIBS=""
+fi
+
 dnl libesmtp
-AM_CONDITIONAL(USE_LIBESMTP, true)
+AM_CONDITIONAL(USE_LIBESMTP, false)
 AC_MSG_CHECKING(whether to enable libesmtp support)
 AC_ARG_ENABLE(libesmtp,
    [AS_HELP_STRING([--enable-libesmtp], [enable libesmtp support [default=yes]])],
    ,[enable_libesmtp=yes])
 AC_MSG_RESULT($enable_libesmtp)
 if test "x$enable_libesmtp" = "xno"; then
-   AM_CONDITIONAL(USE_LIBESMTP, false)
    LIBESMTP_CFLAGS=""
    LIBESMTP_LIBS=""
 else
+   AM_CONDITIONAL(USE_LIBESMTP, true)
    AC_MSG_CHECKING(where libesmtp can be found)
    AC_ARG_WITH(libesmtp,
       [AS_HELP_STRING([--with-libesmtp=/usr/local/libesmtp], [where libesmtp can be found [default=/usr]])])
@@ -171,22 +194,6 @@ else
    SMTP_CFLAGS="-DUSE_LIBESMTP"
    LIBESMTP_CFLAGS=`$LIBESMTP_CONFIG --cflags`
    LIBESMTP_LIBS=`$LIBESMTP_CONFIG --libs`
-fi
-
-dnl libetpan
-AM_CONDITIONAL(USE_LIBETPAN, false)
-AC_MSG_CHECKING(whether to enable libetpan support)
-AC_ARG_ENABLE(libetpan,
-   [AS_HELP_STRING([--enable-libetpan], [enable libetpan support [default=no]])],
-   ,[enable_libetpan=no])
-AC_MSG_RESULT($enable_libetpan)
-if test "x$enable_libetpan" = "xyes"; then
-   PKG_CHECK_MODULES(LIBETPAN, libetpan)
-   AC_SUBST(LIBETPAN_CFLAGS)
-   AC_SUBST(LIBETPAN_LIBS)
-else
-   LIBETPAN_CFLAGS=""
-   LIBETPAN_LIBS=""
 fi
 
 dnl smtp

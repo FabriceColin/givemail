@@ -73,6 +73,8 @@ SMTPProvider *SMTPProviderFactory::getProvider(void)
 	return new LibESMTPProvider();
 #endif
 #endif
+	clog << "Couldn't find any SMTP provider" << endl;
+
 	return NULL;
 }
 

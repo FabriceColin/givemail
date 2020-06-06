@@ -67,13 +67,13 @@ libMailCore_la_SOURCES = \
 	SMTPSession.cc \
 	Timer.cc
 
-if USE_LIBESMTP
-libMailCore_la_SOURCES += \
-	LibESMTPProvider.cc
-endif
 if USE_LIBETPAN
 libMailCore_la_SOURCES += \
 	LibETPANProvider.cc
+endif
+if USE_LIBESMTP
+libMailCore_la_SOURCES += \
+	LibESMTPProvider.cc
 endif
 
 libMailUtils_la_SOURCES = \
@@ -126,6 +126,7 @@ csv2givemail_LDADD = \
 	@HTTP_LIBS@ \
 	@OPENSSL_LIBS@ \
 	@OPENDKIM_LIBS@ \
+	@SASL_LIBS@ \
 	@DB_LIBS@ \
 	@PTHREAD_LIBS@
 
@@ -146,6 +147,7 @@ givemail_LDADD = \
 	@HTTP_LIBS@ \
 	@OPENSSL_LIBS@ \
 	@OPENDKIM_LIBS@ \
+	@SASL_LIBS@ \
 	@DB_LIBS@ \
 	@PTHREAD_LIBS@
 
@@ -229,6 +231,7 @@ AM_CXXFLAGS = \
 	@HTTP_CFLAGS@ \
 	@OPENSSL_CFLAGS@ \
 	@OPENDKIM_CFLAGS@ \
+	@SASL_CFLAGS@ \
 	@FASTCGI_CFLAGS@ \
 	@DB_CFLAGS@
 
