@@ -8,7 +8,6 @@ Release:	1%{?dist}
 License:	LGPL
 Group:		System Environment/Daemons
 Source0:	%{name}-%{version}.tar.gz
-Source1:	libdomainkeys-0.69.tar.gz
 URL:		https://github.com/FabriceColin/givemail
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 %if 0%{?_with_libetpan:1}
@@ -60,15 +59,10 @@ This package includes the GiveMail WebAPI.
 %endif
 
 %prep
-%setup -q -a 1
+%setup -q
 
 %build
-%if %has_dynamic_libresolv
-pushd libdomainkeys-0.69 && echo %{_libdir}/libresolv.so >dns.lib && make && popd
-%else
-pushd libdomainkeys-0.69 && echo %{_libdir}/libresolv.a >dns.lib && make && popd
-%endif
-%configure %{?_with_debug:--enable-debug=yes} %{?_with_webapi:--enable-fastcgi=yes} %{?_with_libetpan:--enable-libetpan=yes --enable-libesmtp=no} --with-libdomainkeys=$PWD/libdomainkeys-0.69
+%configure %{?_with_debug:--enable-debug=yes} %{?_with_webapi:--enable-fastcgi=yes} %{?_with_libetpan:--enable-libetpan=yes --enable-libesmtp=no}
 make
 make documentation
 
