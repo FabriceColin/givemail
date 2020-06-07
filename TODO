@@ -22,6 +22,7 @@ General
 - temporarily-failed recipients are retried automatically
 - timesent and numattempts are set for each recipient
 - support for HTML image embedding
+- DKIM support
 
 XML over HTTP API
 - create, list and delete campaigns and recipients
@@ -41,7 +42,6 @@ General
 - givemail and csv2givemail have a lot in common, yet don't share much
 - move slave code out of givemail to givemail-slave
 - add substitution variables for day, month and year, with arithmetic operations support
-- DKIM support with http://libdkim.sourceforge.net/
 - move attachment pattern matching out of csv2givemail, this would be useful to givemail too; right now the pattern is hardcoded to "*blah-*".
 - endofcampaign could simply be an URL to GET or POST to since givemail has a dependency on curl/neon
 - reload on SIGHUP
