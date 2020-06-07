@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2014 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -260,8 +260,8 @@ void WebAPI::outputCampaign(const Campaign &campaign, const string &detailsLevel
 		m_outputStream << "<UnsubscribeLink>" << WebAPI::encodeEntities(pDetails->m_unsubscribeLink) << "</UnsubscribeLink>\r\n";
 		if (detailsLevel == "Full")
 		{
-			m_outputStream << "<PlainContent>" << WebAPI::encodeEntities(pDetails->m_plainContent) << "</PlainContent>\r\n";
-			m_outputStream << "<HtmlContent>" << WebAPI::encodeEntities(pDetails->m_htmlContent) << "</HtmlContent>\r\n";
+			m_outputStream << "<PlainContent>" << WebAPI::encodeEntities(pDetails->getContent("text/plain")) << "</PlainContent>\r\n";
+			m_outputStream << "<HtmlContent>" << WebAPI::encodeEntities(pDetails->getContent("/html")) << "</HtmlContent>\r\n";
 		}
 		outputAttachments(pDetails, false);
 		outputAttachments(pDetails, true);
@@ -398,13 +398,11 @@ MessageDetails *WebAPI::loadMessage(xmlNode *pMessageNode)
 		}
 		else if (xmlStrncmp(pMessageChildNode->name, BAD_CAST"PlainContent", 12) == 0)
 		{
-			pDetails->m_plainContent = nodeContent;
-			pDetails->m_personalizePlain = true;
+			pDetails->setContentPiece("text/plain", nodeContent.c_str(), "", true);
 		}
 		else if (xmlStrncmp(pMessageChildNode->name, BAD_CAST"HtmlContent", 11) == 0)
 		{
-			pDetails->m_htmlContent = nodeContent;
-			pDetails->m_personalizeHtml = true;
+			pDetails->setContentPiece("text/html", nodeContent.c_str(), "", true);
 		}
 		else if (xmlStrncmp(pMessageChildNode->name, BAD_CAST"EmailAttachment", 15) == 0)
 		{
