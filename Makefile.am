@@ -12,7 +12,6 @@ ChangeLog: Makefile
 dist-hook: ChangeLog
 
 EXTRA_DIST = README COPYING.LIB AUTHORS ChangeLog ChangeLog-previous INSTALL NEWS TODO Doxyfile \
-	intltool-extract.in intltool-merge.in intltool-update.in \
 	conf/*.conf conf/*.sql conf/*.logrotate solaris \
 	sample-api-calls/*.xml sample-emails/*.xml scripts/givemaild \
 	givemail.spec src/*.1
