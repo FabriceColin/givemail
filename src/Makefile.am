@@ -32,6 +32,7 @@ noinst_HEADERS = \
 	Recipient.h \
 	Resolver.h \
 	SQLDB.h \
+	SMTPMessage.h \
 	SMTPOptions.h \
 	SMTPProvider.h \
 	SMTPSession.h \
@@ -160,9 +161,10 @@ givemaild_LDFLAGS = \
 	-rdynamic
 
 givemaild_LDADD = \
-	-lMailCore -lMailUtils -lCommon \
+	-lMailCore -lMailUtils -lCommon -lMailUtils \
 	@RESOLV_LIB@ \
 	-lctemplate \
+	@SMTP_LIBS@ \
 	@LIBXML_LIBS@ \
 	@HTTP_LIBS@ \
 	@DB_LIBS@ \
@@ -191,7 +193,7 @@ webapi_key_manager_LDFLAGS = \
 	-rdynamic
 
 webapi_key_manager_LDADD = \
-	-lMailCore -lMailUtils -lCommon \
+	-lMailCore -lMailUtils -lCommon -lMailUtils \
 	@RESOLV_LIB@ \
 	-lctemplate \
 	@LIBXML_LIBS@ \
@@ -199,7 +201,7 @@ webapi_key_manager_LDADD = \
 	@OPENSSL_LIBS@ \
 	@DB_LIBS@
 
-webapi_key_manager_DEPENDENCIES = libCommon.la libMailUtils.la
+webapi_key_manager_DEPENDENCIES = libCommon.la libMailUtils.la libMailCore.la
 
 webapi_fcgi_SOURCES = \
 	AuthSQL.cc \
@@ -212,7 +214,7 @@ webapi_fcgi_LDFLAGS = \
 	-rdynamic
 
 webapi_fcgi_LDADD = \
-	-lMailUtils -lCommon \
+	-lMailUtils -lCommon -lMailUtils \
 	@RESOLV_LIB@ \
 	-lctemplate \
 	@LIBXML_LIBS@ \
