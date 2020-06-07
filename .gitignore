@@ -1,0 +1,67 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Misc
+.deps
+.libs
+aclocal.m4
+autom4te.cache
+ChangeLog
+Doxyfile
+Makefile
+Makefile.in
+Makefile.in.in
+POTFILES
+compile
+config.guess
+config.h
+config.h.in
+config.log
+config.rpath
+config.status
+config.sub
+configure.ac
+configure
+depcomp
+docs
+install-sh
+intltool*
+libtool
+ltmain.sh
+m4
+missing
+mkinstalldirs
+stamp-h1
+*~
+*gmo
+*pot
+*spec
+*swp
+*tar.gz
