@@ -60,11 +60,8 @@ or generate a source tarball of the current code, and build RPMs with :
    Append "--with mysql4" to calls to rpmbuild if you are on RHEL or a derivative (eg Centos).
    Append "--with debug" to enable DEBUG mode, and "--with fastcgi" to build the WebAPI.
 
-Make sure the givemail service is stopped, you configuration backed up and install the RPMs with :
-   $ rpm -Uvh /path/to/rpmtree/RPMS/givemail-*
-   If this complains about a failed dependency on libc.so.6(GLIBC_PRIVATE), use "--nodeps".
-
-Then restore your configuration and restart the service.
+If upgrading from an older version, make sure the givemail service is stopped and your configuration is backed up.
+After upgrade, restore your configuration and restart the service.
 
 Configuring Givemail
 --------------------
