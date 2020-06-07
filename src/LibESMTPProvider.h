@@ -71,6 +71,9 @@ class LibESMTPMessage : public SMTPMessage
 		/// Adds a recipient.
 		virtual void addRecipient(const std::string &emailAddress);
 
+		/// Gets the headers dump.
+		std::string getHeadersDump(void) const;
+
 		/// Gets headers for an attachment.
 		std::string getAttachmentHeaders(unsigned int attachmentNum,
 			bool inlineParts = false);
