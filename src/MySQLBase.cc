@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009-2014 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  *
  *  The MySQL FLOSS License Exception allows us to license this code under
  *  the LGPL even though MySQL is under the GPL.
@@ -628,6 +628,13 @@ void MySQLBase::open(void)
 		return;
 	}
 
+	// Enable automatic reconnections
+	my_bool reconnect = 1;
+	if (mysql_options(&m_database, MYSQL_OPT_RECONNECT, (const char*)&reconnect) != 0)
+	{
+		clog << "Couldn't enable reconnections" << endl;
+	}
+
 	// Connect to the database
 	if (mysql_real_connect(&m_database, m_hostName.c_str(),
 		m_userName.c_str(), m_password.c_str(), m_databaseName.c_str(),
@@ -638,8 +645,6 @@ void MySQLBase::open(void)
 		return;
 	}
 
-	// Enable automatic reconnections
-	m_database.reconnect = 1;
 	m_isOpen = true;
 }
 
@@ -1223,6 +1228,8 @@ SQLResults *MySQLBase::executePreparedStatement(const string &statementId,
 				{
 					free(bindValues[paramIndex].buffer);
 				}
+				break;
+			case SQLRow::SQL_TYPE_NULL:
 				break;
 		}
 	}
