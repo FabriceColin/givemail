@@ -66,6 +66,7 @@ static DKIM_STAT keyLookup(DKIM *dkim, DKIM_SIGINFO *sig, unsigned char *buf, si
 	return DKIM_STAT_OK;
 }
 
+pthread_mutex_t OpenDKIM::m_mutex = PTHREAD_MUTEX_INITIALIZER;
 DKIM_LIB *OpenDKIM::m_pLib = NULL;
 
 OpenDKIM::OpenDKIM() :
@@ -285,7 +286,7 @@ bool OpenDKIM::canSign(void) const
 	return true;
 }
 
-bool OpenDKIM::sign(const string &messageData,
+bool OpenDKIM::lockedSign(const string &messageData,
 	SMTPMessage *pMsg, bool simpleCanon)
 {
 	DKIM_STAT status;
@@ -321,6 +322,7 @@ bool OpenDKIM::sign(const string &messageData,
 				DKIM_CANON_RELAXED, DKIM_CANON_RELAXED,
 				DKIM_SIGN_RSASHA1, -1L, &status);
 	}
+
 	if (m_pObj == NULL)
 	{
 		clog << "OpenDKIM: sign failed with status " << status << endl;
@@ -360,7 +362,7 @@ bool OpenDKIM::sign(const string &messageData,
 	return true;
 }
 
-bool OpenDKIM::verify(const string &messageData,
+bool OpenDKIM::lockedVerify(const string &messageData,
 	SMTPMessage *pMsg)
 {
 	DKIM_STAT status;
@@ -423,5 +425,29 @@ bool OpenDKIM::verify(const string &messageData,
 	}
 
 	return true;
+}
+
+bool OpenDKIM::sign(const string &messageData,
+	SMTPMessage *pMsg, bool simpleCanon)
+{
+	pthread_mutex_lock(&m_mutex);
+
+	bool status = lockedSign(messageData, pMsg, simpleCanon);
+
+	pthread_mutex_unlock(&m_mutex);
+
+	return status;
+}
+
+bool OpenDKIM::verify(const string &messageData,
+	SMTPMessage *pMsg)
+{
+	pthread_mutex_lock(&m_mutex);
+
+	bool status = lockedVerify(messageData, pMsg);
+
+	pthread_mutex_unlock(&m_mutex);
+
+	return status;
 }
 

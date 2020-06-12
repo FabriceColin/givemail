@@ -17,9 +17,10 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _DOMAINKEYS_H_
-#define _DOMAINKEYS_H_
+#ifndef _OPENDKIM_H_
+#define _OPENDKIM_H_
 
+#include <pthread.h>
 #include <stdbool.h>
 #include <dkim.h>
 #include <string>
@@ -61,6 +62,7 @@ class OpenDKIM : public DomainAuth
 			SMTPMessage *pMsg);
 
 	protected:
+		static pthread_mutex_t m_mutex;
 		static DKIM_LIB *m_pLib;
 		std::string m_selector;
 		std::string m_privateKeyFileName;
@@ -71,6 +73,12 @@ class OpenDKIM : public DomainAuth
 		bool feedMessage(const std::string &messageData,
 			SMTPMessage *pMsg);
 
+		bool lockedSign(const std::string &messageData,
+			SMTPMessage *pMsg, bool simpleCanon);
+
+		bool lockedVerify(const std::string &messageData,
+			SMTPMessage *pMsg);
+
 	private:
 		// OpenDKIM objects cannot be copied.
 		OpenDKIM(const OpenDKIM &other);
@@ -78,4 +86,4 @@ class OpenDKIM : public DomainAuth
 
 };
 
-#endif // _DOMAINKEYS_H_
+#endif // _OPENDKIM_H_
