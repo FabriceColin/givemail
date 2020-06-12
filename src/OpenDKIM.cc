@@ -275,7 +275,9 @@ bool OpenDKIM::canSign(void) const
 {
 	if ((m_pLib == NULL) ||
 		(m_pPrivateKey == NULL) ||
-		(m_domainName.empty() == true))
+		(m_domainName.empty() == true) ||
+		(m_selector.empty() == true) ||
+		(m_privateKeyFileName.empty() == true))
 	{
 		return false;
 	}
