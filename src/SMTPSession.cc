@@ -449,6 +449,12 @@ bool SMTPSession::signMessage(SMTPMessage *pMsg, DomainAuth &domainAuth)
 		return false;
 	}
 
+	// Proceed if keys etc are not set and signing isn't possible
+	if (domainAuth.canSign() == false)
+	{
+		return true;
+	}
+
 	string fullMessage(m_pProvider->getMessageData(pMsg));
 
 	// Sign the message
