@@ -173,14 +173,6 @@ static bool runTest(const string &domainName, XmlMessageDetails &testFile,
 	pConfig->findDomainLimits(domainLimits, true);
 
 	SMTPSession session(domainLimits, pConfig->m_options);
-
-	if ((testFile.getPlainSubstituteObj() == NULL) ||
-		(testFile.getHtmlSubstituteObj() == NULL))
-	{
-		cerr << "Couldn't get substitution objects" << endl;
-		return false;
-	}
-
 	StatusUpdater updater(statusFileName);
 
 	domainKeys.loadPrivateKey(pConfig);
@@ -457,13 +449,6 @@ static bool runSlave(const string &campaignId, const string &slaveId)
 		return false;
 	}
 
-	// Look for fields in content only if necessary
-	if ((pDetails->getPlainSubstituteObj() == NULL) ||
-		(pDetails->getHtmlSubstituteObj() == NULL))
-	{
-		cerr << "Couldn't get substitution objects" << endl;
-		return false;
-	}
 	// FIXME: make sure pDetails' properties are all set correctly
 
 	cout << "Processing campaign " << pCampaign->m_name << "(" << campaignId << ")" << endl;

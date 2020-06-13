@@ -483,7 +483,8 @@ static bool sendToDomain(const DomainLimits &domainLimits,
 
 	Timer domainTimer;
 
-	cout << RunUnits::getId() << " serving " << domainLimits.m_domainName << endl;
+	cout << RunUnits::getId() << " serving " << recipients.size()
+		<< " recipients on " << domainLimits.m_domainName << endl;
 
 	// Send to all recipients
 	if (session.generateMessages(domainAuth, pDetails, recipients, &statusUpdater) == false)
@@ -521,9 +522,7 @@ void *workerUnitFunc(void *pArg)
 
 	// Look for fields in content
 	if ((pDetails == NULL) ||
-		(pRecipientsMap == NULL) ||
-		(pDetails->getPlainSubstituteObj() == NULL) ||
-		(pDetails->getHtmlSubstituteObj() == NULL))
+		(pRecipientsMap == NULL))
 	{
 		cerr << RunUnits::getId() << " couldn't get substitution objects" << endl;
 		return NULL;
@@ -666,7 +665,7 @@ static bool scanFiles(const string &entryName, const string &attachmentPattern,
 	}
 
 #ifdef DEBUG
-	cout << "scanFiles: status " << foundMatch << ", " << filesToAttach.size() << " matches" << endl;
+	cout << "scanFiles: " << entryName << " status " << foundMatch << ", " << filesToAttach.size() << " matches" << endl;
 #endif
 	return foundMatch;
 }
@@ -739,6 +738,10 @@ static bool parseRecipientsList(const string &recipientsList,
 			}
 		}
 	}
+#ifdef DEBUG
+	cout << "parseRecipientsList: inserted " << recipients.size()
+		<< " recipients of type " << type << endl;
+#endif
 
 	return haveRecipients;
 }
@@ -850,19 +853,25 @@ static int runMailing(const string &emailFileName, const string &csvFileName,
 		pXmlMessageDetails->m_cc.clear();
 		if (parseRecipientsList(toRecipientsList, pRecipientsMap->m_recipients, Recipient::AS_TO, timestamp) == true) 
 		{
-			if ((pConfig != NULL) &&
-				(pConfig->m_hideRecipients == false))
+			if (!((pConfig != NULL) &&
+				(pConfig->m_hideRecipients == true)))
 			{
 				pXmlMessageDetails->m_to = toRecipientsList;
+#ifdef DEBUG
+				cout << "runMailing: To " << toRecipientsList << endl;
+#endif
 			}
 			haveRecipients = true;
 		}
 		if (parseRecipientsList(ccRecipientsList, pRecipientsMap->m_recipients, Recipient::AS_CC, timestamp) == true)
 		{
-			if ((pConfig != NULL) &&
-				(pConfig->m_hideRecipients == false))
+			if (!((pConfig != NULL) &&
+				(pConfig->m_hideRecipients == true)))
 			{
 				pXmlMessageDetails->m_cc = ccRecipientsList;
+#ifdef DEBUG
+				cout << "runMailing: CC " << ccRecipientsList << endl;
+#endif
 			}
 			haveRecipients = true;
 		}
