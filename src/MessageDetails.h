@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2015 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -117,13 +117,16 @@ class MessageDetails
 		std::string getEncoding(const std::string &contentType) const;
 
 		/// Gets a Substitute object for plain text content.
-		Substitute *getPlainSubstituteObj(bool hasFields = true);
+		Substitute *getPlainSubstituteObj(const std::string &dictionaryId,
+			bool hasFields = true);
 
 		/// Gets a Substitute object for HTML content.
-		Substitute *getHtmlSubstituteObj(bool hasFields = true);
+		Substitute *getHtmlSubstituteObj(const std::string &dictionaryId,
+			bool hasFields = true);
 
 		/// Substitutes short strings such as subject.
-		std::string substitute(const std::string &content,
+		std::string substitute(const std::string &dictionaryId,
+			const std::string &content,
 			const std::map<std::string, std::string> &fieldValues);
 
 		/// Returns whether the message has to be personalized for each recipient.
@@ -165,7 +168,6 @@ class MessageDetails
 
 	protected:
 		unsigned int m_version;
-		unsigned int m_subId;
 		Substitute *m_pPlainSub;
 		Substitute *m_pHtmlSub;
 		bool m_isRecipientPersonalized;
@@ -173,9 +175,8 @@ class MessageDetails
 		unsigned int m_attachmentsCount;
 		unsigned int m_inlinePartsCount;
 
-		std::string getId(void);
-
-		Substitute *newSubstitute(const std::string &contentTemplate,
+		Substitute *newSubstitute(const std::string &dictionaryId,
+			const std::string &contentTemplate,
 			bool hasFields, bool escapeEntities);
 
 	private:

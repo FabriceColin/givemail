@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2012 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -237,9 +237,6 @@ void CTemplateSubstitute::substitute(const map<string, string> &fieldValues,
 	for (map<string, string>::const_iterator valueIter = fieldValues.begin();
 		valueIter != fieldValues.end(); ++valueIter)
 	{
-#ifdef DEBUG
-		clog << "CTemplateSubstitute::substitute: value for " << valueIter->first << endl;
-#endif
 		m_dict.SetValue(valueIter->first, valueIter->second);
 		m_dict.ShowSection(valueIter->first + "_section");
 	}

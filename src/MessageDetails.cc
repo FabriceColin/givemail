@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2015 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -35,9 +35,9 @@ using std::string;
 using std::vector;
 using std::set;
 using std::map;
+using std::ifstream;
 using std::stringstream;
 using std::for_each;
-using std::ifstream;
 using std::ios;
 
 struct DeleteContentPieceFunc
@@ -202,7 +202,6 @@ MessageDetails::MessageDetails() :
 	m_useXMailer(false),
 	m_isReply(false),
 	m_version(1),
-	m_subId(0),
 	m_pPlainSub(NULL),
 	m_pHtmlSub(NULL),
 	m_isRecipientPersonalized(false),
@@ -332,45 +331,48 @@ string MessageDetails::createMessageId(const string &suffix, bool isReplyId)
 	return messageId;
 }
 
-Substitute *MessageDetails::getPlainSubstituteObj(bool hasFields)
+Substitute *MessageDetails::getPlainSubstituteObj(const string &dictionaryId,
+	bool hasFields)
 {
 	if (m_pPlainSub == NULL)
 	{
-		m_pPlainSub = newSubstitute(getContent("text/plain"),
-			hasFields, false);
+		m_pPlainSub = newSubstitute(dictionaryId,
+			getContent("text/plain"), hasFields, false);
 	}
 
 	return m_pPlainSub;
 }
 
-Substitute *MessageDetails::getHtmlSubstituteObj(bool hasFields)
+Substitute *MessageDetails::getHtmlSubstituteObj(const string &dictionaryId,
+	bool hasFields)
 {
 	if (m_pHtmlSub == NULL)
 	{
-		m_pHtmlSub = newSubstitute(getContent("/html"),
-			hasFields, true);
+		m_pHtmlSub = newSubstitute(dictionaryId,
+			getContent("/html"), hasFields, true);
 	}
 
 	return m_pHtmlSub;
 }
 
-string MessageDetails::substitute(const string &content,
-	const map<string, string> &fieldValues)
+string MessageDetails::substitute(const string &dictionaryId,
+	const string &content, const map<string, string> &fieldValues)
 {
 	Substitute *pSub = NULL;
 	string subContent;
 
 #ifdef DEBUG
-	clog << "MessageDetails::substitute: version " << m_version << endl;
+	clog << "MessageDetails::substitute: version " << m_version
+		<< " ID " << dictionaryId << endl;
 #endif
 	if (m_version >= 2)
 	{
-		pSub = new CTemplateSubstitute(getId(),
+		pSub = new CTemplateSubstitute(dictionaryId,
 			content, false);
 	}
 	else
 	{
-		pSub = new Substitute(getId(),
+		pSub = new Substitute(dictionaryId,
 			content, false);
 	}
 
@@ -628,33 +630,24 @@ string MessageDetails::getEncoding(const string &contentType) const
 	return "";
 }
 
-string MessageDetails::getId(void)
-{
-	stringstream idStr;
-
-	idStr << "substitute";
-	idStr << m_subId;
-	++m_subId;
-
-	return idStr.str();
-}
-
-Substitute *MessageDetails::newSubstitute(const string &contentTemplate,
+Substitute *MessageDetails::newSubstitute(const string &dictionaryId,
+	const string &contentTemplate,
 	bool hasFields, bool escapeEntities)
 {
 	Substitute *pSub = NULL;
 
 #ifdef DEBUG
-	clog << "MessageDetails::newSubstitute: version " << m_version << endl;
+	clog << "MessageDetails::newSubstitute: version " << m_version
+		<< " ID " << dictionaryId << endl;
 #endif
 	if (m_version >= 2)
 	{
-		pSub = new CTemplateSubstitute(getId(),
+		pSub = new CTemplateSubstitute(dictionaryId,
 			contentTemplate, escapeEntities);
 	}
 	else
 	{
-		pSub = new Substitute(getId(),
+		pSub = new Substitute(dictionaryId,
 			contentTemplate, escapeEntities);
 	}
 
