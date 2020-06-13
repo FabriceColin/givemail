@@ -24,6 +24,7 @@
 #include <strings.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <utility>
 
 #include "config.h"
@@ -37,6 +38,7 @@ using std::map;
 using std::pair;
 using std::string;
 using std::ofstream;
+using std::stringstream;
 
 SMTPHeader::SMTPHeader(const std::string &name, const std::string &value, const std::string &path) :
 	m_name(name),
@@ -78,28 +80,35 @@ SMTPMessage::SMTPMessage(const map<string, string> &fieldValues,
 	m_dsnFlags(dsnFlags),
 	m_enableMdn(enableMdn),
 	m_msgIdSuffix(msgIdSuffix),
-	m_complaints(complaints)
+	m_msgId(""),
+	m_complaints(complaints),
+	m_subId(0)
 {
+	// Generate a message ID early on so that it may used as dictionary ID
+	// for all substitutions related to this message
+	if (m_pDetails != NULL)
+	{
+		m_msgId = m_pDetails->createMessageId(m_msgIdSuffix, false);
+	}
 }
 
 SMTPMessage::~SMTPMessage()
 {
 }
 
-void SMTPMessage::substitute(const map<string, string> &fieldValues)
+void SMTPMessage::substituteContent(const map<string, string> &fieldValues)
 {
 	if (m_pDetails == NULL)
 	{
 		return;
 	}
 
-	m_pDetails->getPlainSubstituteObj()->substitute(fieldValues, m_plainContent);
-	m_pDetails->getHtmlSubstituteObj()->substitute(fieldValues, m_htmlContent);
+	m_pDetails->getPlainSubstituteObj(m_msgId + "p")->substitute(fieldValues, m_plainContent);
+	m_pDetails->getHtmlSubstituteObj(m_msgId + "h")->substitute(fieldValues, m_htmlContent);
 }
 
 void SMTPMessage::buildHeaders(void)
 {
-	string suffix(m_msgIdSuffix);
 	string userAgent(getUserAgent());
 
 	appendHeader("MIME-Version", "1.0", "");
@@ -125,15 +134,17 @@ void SMTPMessage::buildHeaders(void)
 	// All these headers are short so it should be okay to substitute their fields for each message
 	if (m_pDetails != NULL)
 	{
+		string suffix(m_msgIdSuffix);
+
 		if (m_pDetails->m_subject.empty() == false)
 		{
 			appendHeader("Subject",
-				m_pDetails->substitute(m_pDetails->m_subject, m_fieldValues), "");
+				substitute(m_pDetails->m_subject, m_fieldValues), "");
 		}
 
 		if (m_pDetails->m_senderEmailAddress.empty() == false)
 		{
-			string senderEmailAddress(m_pDetails->substitute(m_pDetails->m_senderEmailAddress, m_fieldValues));
+			string senderEmailAddress(substitute(m_pDetails->m_senderEmailAddress, m_fieldValues));
 			string::size_type atPos = senderEmailAddress.find('@');
 
 			if (atPos != string::npos)
@@ -147,7 +158,6 @@ void SMTPMessage::buildHeaders(void)
 		}
 
 		appendHeader("Resent-Message-Id", m_pDetails->createMessageId(suffix, false), "");
-		m_msgId = m_pDetails->createMessageId(suffix, false);
 		appendHeader("Message-Id", m_msgId, "");
 		if (m_pDetails->m_isReply == true)
 		{
@@ -157,18 +167,18 @@ void SMTPMessage::buildHeaders(void)
 
 		if (m_pDetails->m_fromEmailAddress.empty() == false)
 		{
-			m_smtpFrom = m_pDetails->substitute(m_pDetails->m_fromEmailAddress, m_fieldValues);
+			m_smtpFrom = substitute(m_pDetails->m_fromEmailAddress, m_fieldValues);
 
 			appendHeader("From",
-				m_pDetails->substitute(m_pDetails->m_fromName, m_fieldValues),
+				substitute(m_pDetails->m_fromName, m_fieldValues),
 				m_smtpFrom);
 		}
 
 		if (m_pDetails->m_replyToEmailAddress.empty() == false)
 		{
 			appendHeader("Reply-To",
-				m_pDetails->substitute(m_pDetails->m_replyToName, m_fieldValues),
-				m_pDetails->substitute(m_pDetails->m_replyToEmailAddress, m_fieldValues));
+				substitute(m_pDetails->m_replyToName, m_fieldValues),
+				substitute(m_pDetails->m_replyToEmailAddress, m_fieldValues));
 		}
 	}
 }
@@ -304,6 +314,24 @@ string SMTPMessage::getSignatureHeader(void) const
 	return m_signatureHeader;
 }
 
+string SMTPMessage::substitute(const string &content,
+	const map<string, string> &fieldValues)
+{
+	stringstream idStr;
+
+	idStr << m_msgId;
+	idStr << m_subId;
+	if (m_subId == 0)
+	{
+#ifdef DEBUG
+			clog << "SMTPMessage::substitute: no ID" << endl;
+#endif
+	}
+	++m_subId;
+
+	return m_pDetails->substitute(idStr.str(), content, fieldValues);
+}
+
 bool SMTPMessage::addHeader(const string &header,
 	const string &value, const string &path)
 {
@@ -320,12 +348,18 @@ bool SMTPMessage::addHeader(const string &header,
 
 	// Store this
 	m_headers.push_back(SMTPHeader(header, value, path));
+#ifdef DEBUG
+	clog << "SMTPMessage::addHeader: " << header << " = " << value << endl;
+#endif
 
 	return true;
 }
 
 void SMTPMessage::setReversePath(const string &reversePath)
 {
+#ifdef DEBUG
+	clog << "SMTPMessage::setReversePath: " << reversePath << endl;
+#endif
 	m_reversePath = reversePath;
 }
 

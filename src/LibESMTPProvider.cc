@@ -650,7 +650,7 @@ LibESMTPMessage::LibESMTPMessage(const map<string, string> &fieldValues,
 	if (m_pDetails != NULL)
 	{
 		// Substitute fields in content once
-		substitute(fieldValues);
+		substituteContent(fieldValues);
 
 		qpEncode(m_plainContent);
 		qpEncode(m_htmlContent);

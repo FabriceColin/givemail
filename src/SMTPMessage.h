@@ -66,8 +66,8 @@ class SMTPMessage
 		DSNNotification m_dsnFlags;
 		bool m_enableMdn;
 		std::string m_msgIdSuffix;
-		std::string m_complaints;
 		std::string m_msgId;
+		std::string m_complaints;
 
 		/// Returns true if this is a delivery receipt.
 		bool isDeliveryReceipt(void) const;
@@ -100,6 +100,10 @@ class SMTPMessage
 		/// Gets the signature header.
 		virtual std::string getSignatureHeader(void) const;
 
+		/// Substitutes any content for insertion into this message.
+		std::string substitute(const std::string &content,
+			const std::map<std::string, std::string> &fieldValues);
+
 		/// Adds a header, which will be signed.
 		virtual bool addHeader(const std::string &header,
 			const std::string &value, const std::string &path);
@@ -122,8 +126,9 @@ class SMTPMessage
 	protected:
 		std::string m_reversePath;
 		std::string m_signatureHeader;
+		unsigned int m_subId;
 
-		void substitute(const std::map<std::string, std::string> &fieldValues);
+		void substituteContent(const std::map<std::string, std::string> &fieldValues);
 
 		virtual void buildHeaders(void);
 

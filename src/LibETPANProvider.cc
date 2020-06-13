@@ -744,7 +744,7 @@ LibETPANMessage::LibETPANMessage(const map<string, string> &fieldValues,
 	}
 
 	// Substitute fields in content once
-	substitute(fieldValues);
+	substituteContent(fieldValues);
 
 	buildHeaders();
 }
