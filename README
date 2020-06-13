@@ -92,7 +92,7 @@ To generate the manual pages, run :
    $ make manuals
 
 To test the engine, run :
-   $ givemail --conf /path/to/givemail.conf --xml-file /path/to/sample-emails/test.xml mailinator.com bozotheclown@mailinator.com Bozo
+   $ givemail --conf /path/to/givemail.conf --xml-file /path/to/sample-emails/test-email.xml mailinator.com bozotheclown@mailinator.com Bozo
 
 To enable debugging (libetpan only), run :
    $ export GIVEMAIL_DEBUG=Y
@@ -115,7 +115,7 @@ To specify a SMTP relay, run :
    $ export GIVEMAIL_RELAY_PASSWORD=password
 
 To test DKIM signatures, run :
-   $ GIVEMAIL_VERIFY_SIGNATURES=Y GIVEMAIL_DONT_SEND=Y ./src/givemail -c tests/givemail.conf -m TestPrefixId -e example.com -x tests/fields.xml some.onen@gmail.com "Some One"
+   $ GIVEMAIL_VERIFY_SIGNATURES=Y GIVEMAIL_DONT_SEND=Y ./src/givemail -c /path/to/sample-emails/givemail.conf -m TestPrefixId -e example.com -x /path/to/sample-emails/test-fields.xml some.onen@gmail.com "Some One"
 
 To sign a message prior to posting to the WebAPI, run :
    $ webapi-key-manager --conf /path/to/givemail.conf --sign /path/to/sample-api-calls/list-campaigns.xml 1a60838a-7c5c-102b-af7a-0030485eff82
