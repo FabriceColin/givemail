@@ -108,7 +108,10 @@ class SMTPMessage
 		virtual void setEnvId(const std::string &dsnEnvId) = 0;
 
 		/// Sets the reverse path.
-		virtual void setReversePath(const std::string &reversePath) = 0;
+		void setReversePath(const std::string &reversePath);
+
+		/// Gets the reverse path.
+		std::string getReversePath(void) const;
 
 		/// Adds a recipient.
 		virtual void addRecipient(const std::string &emailAddress) = 0;
@@ -117,6 +120,7 @@ class SMTPMessage
 		void dumpToFile(const std::string &fileBaseName) const;
 
 	protected:
+		std::string m_reversePath;
 		std::string m_signatureHeader;
 
 		void substitute(const std::map<std::string, std::string> &fieldValues);

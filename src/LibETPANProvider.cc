@@ -840,6 +840,20 @@ struct mailimf_fields *LibETPANMessage::headersToFields(void)
 		}
 	}
 
+	string reversePath(getReversePath());
+
+	if (reversePath.empty() == false)
+	{
+		// This must be malloc-ated
+		struct mailimf_field *pOptionalField = mailimf_field_new_custom(strdup("Return-Path"),
+			strdup(reversePath.c_str()));
+		optionalFields.push_back(pOptionalField);
+#ifdef DEBUG
+		clog << "LibETPANMessage::headersToFields: set Return-Path to "
+			<< reversePath << endl;
+#endif
+	}
+
 	// Build the message now that it's being requested
 	struct mailimf_fields *pFields = mailimf_fields_new_with_data_all(pDate,
 		pFrom, pSender, pReplyTo, pTo, pCC, pBCC,
@@ -944,11 +958,6 @@ bool LibETPANMessage::addHeader(const string &header,
 void LibETPANMessage::setEnvId(const string &dsnEnvId)
 {
 	m_dsnEnvId = dsnEnvId;
-}
-
-void LibETPANMessage::setReversePath(const string &reversePath)
-{
-	m_reversePath = reversePath;
 }
 
 void LibETPANMessage::addRecipient(const string &emailAddress)
@@ -1334,8 +1343,7 @@ SMTPMessage *LibETPANProvider::newMessage(const map<string, string> &fieldValues
 		dsnFlags, enableMdn, msgIdSuffix, complaints);
 }
 
-void LibETPANProvider::queueMessage(SMTPMessage *pMsg,
-	const string &defaultReturnPath)
+void LibETPANProvider::queueMessage(SMTPMessage *pMsg)
 {
 	if ((m_session == NULL) ||
 		(pMsg == NULL))
@@ -1347,11 +1355,6 @@ void LibETPANProvider::queueMessage(SMTPMessage *pMsg,
 	if (pETPANMsg == NULL)
 	{
 		return;
-	}
-
-	if (defaultReturnPath.empty() == false)
-	{
-		pETPANMsg->m_defaultReturnPath = defaultReturnPath;
 	}
 
 	// Store this

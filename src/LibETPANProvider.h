@@ -40,9 +40,7 @@ class LibETPANMessage : public SMTPMessage
 		virtual ~LibETPANMessage();
 
 		time_t m_date;
-		std::string m_defaultReturnPath;
 		std::string m_dsnEnvId;
-		std::string m_reversePath;
 		std::map<std::string, int> m_recipients;
 		MMAPString *m_pString;
 		std::string m_response;
@@ -61,9 +59,6 @@ class LibETPANMessage : public SMTPMessage
 
 		/// Sets the DSN Env Id.
 		virtual void setEnvId(const std::string &dsnEnvId);
-
-		/// Sets the reverse path.
-		virtual void setReversePath(const std::string &reversePath);
 
 		/// Adds a recipient.
 		virtual void addRecipient(const std::string &emailAddress);
@@ -118,8 +113,7 @@ class LibETPANProvider : public SMTPProvider
 			const std::string &msgIdSuffix = "",
 			const std::string &complaints = "");
 
-		virtual void queueMessage(SMTPMessage *pMsg,
-			const std::string &defaultReturnPath);
+		virtual void queueMessage(SMTPMessage *pMsg);
 
 		virtual bool startSession(bool reset);
 

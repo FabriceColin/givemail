@@ -324,6 +324,31 @@ bool SMTPMessage::addHeader(const string &header,
 	return true;
 }
 
+void SMTPMessage::setReversePath(const string &reversePath)
+{
+	m_reversePath = reversePath;
+}
+
+string SMTPMessage::getReversePath(void) const
+{
+	if (m_reversePath.empty() == false)
+	{
+		return m_reversePath;
+	}
+	// Else, make up a Return-Path header
+
+	string reversePath(getSenderEmailAddress());
+
+	if (reversePath.empty() == false)
+	{
+		return reversePath;
+	}
+
+	reversePath = getFromEmailAddress();
+
+	return reversePath;
+}
+
 void SMTPMessage::dumpToFile(const string &fileBaseName) const
 {
 	string msgFileName(fileBaseName);

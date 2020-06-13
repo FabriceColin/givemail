@@ -65,9 +65,6 @@ class LibESMTPMessage : public SMTPMessage
 		/// Sets the DSN Env Id.
 		virtual void setEnvId(const std::string &dsnEnvId);
 
-		/// Sets the reverse path.
-		virtual void setReversePath(const std::string &reversePath);
-
 		/// Adds a recipient.
 		virtual void addRecipient(const std::string &emailAddress);
 
@@ -130,8 +127,7 @@ class LibESMTPProvider : public SMTPProvider
 			const std::string &msgIdSuffix = "",
 			const std::string &complaints = "");
 
-		virtual void queueMessage(SMTPMessage *pMsg,
-			const std::string &defaultReturnPath);
+		virtual void queueMessage(SMTPMessage *pMsg);
 
 		virtual bool startSession(bool reset);
 

@@ -769,15 +769,6 @@ void LibESMTPMessage::setEnvId(const string &dsnEnvId)
 	}
 }
 
-void LibESMTPMessage::setReversePath(const string &reversePath)
-{
-	if ((m_message != NULL) &&
-		(reversePath.empty() == false))
-	{
-		smtp_set_reverse_path(m_message, reversePath.c_str());
-	}
-}
-
 void LibESMTPMessage::addRecipient(const string &emailAddress)
 {
 	if (m_message == NULL)
@@ -916,6 +907,17 @@ string LibESMTPProvider::getMessageData(SMTPMessage *pMsg)
 		return "";
 	}
 
+	string reversePath(pMsg->getReversePath());
+
+	if (reversePath.empty() == false)
+	{
+		smtp_set_reverse_path(pMsg->m_message, reversePath.c_str());
+#ifdef DEBUG
+		clog << "LibESMTPProvider::getMessageData: set Return-Path to "
+			<< reversePath << endl;
+#endif
+	}
+
 	// Rewind
 	messageDataCallback(&ppBuf, NULL, pMsg);
 	do
@@ -1040,8 +1042,7 @@ SMTPMessage *LibESMTPProvider::newMessage(const map<string, string> &fieldValues
 		dsnFlags, enableMdn, msgIdSuffix, complaints);
 }
 
-void LibESMTPProvider::queueMessage(SMTPMessage *pMsg,
-	const string &defaultReturnPath)
+void LibESMTPProvider::queueMessage(SMTPMessage *pMsg)
 {
 	if ((m_session == NULL) ||
 		(pMsg == NULL))
@@ -1065,14 +1066,7 @@ void LibESMTPProvider::queueMessage(SMTPMessage *pMsg,
 		// Request MDN to be sent to the same address as the reverse path
 		smtp_set_header(pESMTPMsg->m_message, "Disposition-Notification-To", NULL, NULL);
 	}
-	if (defaultReturnPath.empty() == false)
-	{
-		smtp_set_reverse_path(pESMTPMsg->m_message, defaultReturnPath.c_str());
-#ifdef DEBUG
-		clog << "LibESMTPProvider::queueMessage: set default Return-Path to "
-			<< defaultReturnPath << endl;
-#endif
-	}
+
 	// Is Delivery Status Notification required ?
 	if (pMsg->m_dsnFlags != SMTPMessage::NEVER)
 	{

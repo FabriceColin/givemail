@@ -64,8 +64,7 @@ class SMTPProvider
 			const std::string &msgIdSuffix = "",
 			const std::string &complaints = "") = 0;
 
-		virtual void queueMessage(SMTPMessage *pMsg,
-			const std::string &defaultReturnPath) = 0;
+		virtual void queueMessage(SMTPMessage *pMsg) = 0;
 
 		virtual bool startSession(bool reset) = 0;
 
