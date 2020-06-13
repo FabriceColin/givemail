@@ -449,13 +449,13 @@ bool SMTPSession::signMessage(SMTPMessage *pMsg, DomainAuth &domainAuth)
 		return false;
 	}
 
+	string fullMessage(m_pProvider->getMessageData(pMsg));
+
 	// Proceed if keys etc are not set and signing isn't possible
 	if (domainAuth.canSign() == false)
 	{
 		return true;
 	}
-
-	string fullMessage(m_pProvider->getMessageData(pMsg));
 
 	// Sign the message
 	if ((domainAuth.sign(fullMessage, pMsg, false) == true) &&
@@ -591,6 +591,9 @@ bool SMTPSession::generateMessages(DomainAuth &domainAuth,
 		SMTPMessage *pMessage = m_pProvider->newMessage(fieldValues, pDetails,
 			dsnNotify, false, m_options.m_msgIdSuffix, m_options.m_complaints);
 		messages.insert(pMessage);
+#ifdef DEBUG
+		clog << "SMTPSession::generateMessages: one message for all recipients" << endl;
+#endif
 
 		// Queue the message
 		if (queueMessage(pMessage, domainAuth,
@@ -627,6 +630,9 @@ bool SMTPSession::generateMessages(DomainAuth &domainAuth,
 			SMTPMessage *pMessage = m_pProvider->newMessage(fieldValues, pDetails,
 				dsnNotify, false, m_options.m_msgIdSuffix, m_options.m_complaints);
 			messages.insert(pMessage);
+#ifdef DEBUG
+			clog << "SMTPSession::generateMessages: message specific to " << emailAddress << endl;
+#endif
 
 			// Queue the message
 			// FIXME: it might not be a good idea to queue too many messages, especially if content is huge
@@ -685,9 +691,10 @@ bool SMTPSession::queueMessage(SMTPMessage *pMsg,
 	DomainAuth &domainAuth, map<string, Recipient> &recipients,
 	StatusUpdater *pUpdater)
 {
-	string defaultReturnPath;
-	bool setRecipientSpecificHeaders = false;
-	bool setReturnPathHeader = false;
+	ConfigurationFile *pConfig = ConfigurationFile::getInstance("");
+	bool setRecipientSpecificHeaders = true;
+	bool setUnsubscribeLink = false;
+	bool lookForReturnPath = true;
 	bool serverOk = true;
 
 	// Create, if necessary
@@ -703,88 +710,109 @@ bool SMTPSession::queueMessage(SMTPMessage *pMsg,
 		return false;
 	}
 
-	// Default Return-Path header
-	if (pMsg->getSenderEmailAddress().empty() == false)
+	// Set To here?
+	if (pMsg->m_pDetails->isRecipientPersonalized() == true)
 	{
-		defaultReturnPath = pMsg->getSenderEmailAddress();
+		setRecipientSpecificHeaders = false;
+		setUnsubscribeLink = true;
 	}
-	else if (pMsg->getFromEmailAddress().empty() == false)
+	else if ((pConfig != NULL) &&
+		(pConfig->m_hideRecipients == true))
 	{
-		defaultReturnPath = pMsg->getFromEmailAddress();
-	}
-
-	// If only one recipient, set To and Return-Path here
-	if ((pMsg->m_pDetails != NULL) &&
-		(recipients.size() == 1))
-	{
-		setRecipientSpecificHeaders = true;
-		setReturnPathHeader = true;
+		setRecipientSpecificHeaders = false;
 	}
 
-	m_pProvider->queueMessage(pMsg, defaultReturnPath);
+	m_pProvider->queueMessage(pMsg);
 
+#ifdef DEBUG
+	clog << "SMTPSession::queueMessage: " << recipients.size() << " recipients" << endl;
+#endif
 	map<string, Recipient>::const_iterator recipIter = recipients.begin();
 	while (recipIter != recipients.end())
 	{
 		string toHeader;
 		string ccHeader;
+		string dsnEnvId;
+		string unsubscribeLink;
 
-		if (pMsg->m_pDetails != NULL)
+		if ((setRecipientSpecificHeaders == true) &&
+			(pMsg->m_pDetails != NULL))
 		{
 			toHeader = pMsg->m_pDetails->m_to;
 			ccHeader = pMsg->m_pDetails->m_cc;
+
+			if ((toHeader.empty() == false) ||
+				(ccHeader.empty() == false))
+			{
+#ifdef DEBUG
+				clog << "SMTPSession::queueMessage: initialized To (" << toHeader
+					<< ") and CC (" << ccHeader << ")" << endl;
+#endif
+				setRecipientSpecificHeaders = false;
+			}
 		}
 
 		// Add as many recipients as allowed
 		while ((m_msgsCount < m_domainLimits.m_maxMsgsPerServer) && (recipIter != recipients.end()))
 		{
 			string name(recipIter->second.m_name), emailAddress(recipIter->second.m_emailAddress);
-			string dsnEnvId, reversePath;
+			Recipient::RecipientType type(recipIter->second.m_type);
 
+			if (emailAddress.empty() == true)
+			{
+				continue;
+			}
+
+#ifdef DEBUG
+			clog << "SMTPSession::queueMessage: recipient " << type << " " << emailAddress << endl;
+#endif
 			if (setRecipientSpecificHeaders == true)
 			{
-				if ((pMsg->m_pDetails != NULL) &&
-					(pMsg->m_pDetails->m_to.empty() == true))
+				if (type == Recipient::AS_TO)
 				{
-					toHeader = appendValueAndPath(name, emailAddress);
+					if (toHeader.empty() == false)
+					{
+						toHeader += ", ";
+					}
+					toHeader += appendValueAndPath(name, emailAddress);
+				}
+				else if (type == Recipient::AS_CC)
+				{
+					if (ccHeader.empty() == false)
+					{
+						ccHeader += ", ";
+					}
+					ccHeader += appendValueAndPath(name, emailAddress);
 				}
 
-				// Use the recipient ID as envelope notifier
-				if (pMsg->m_dsnFlags != SMTPMessage::NEVER)
+				// Use the first recipient ID as envelope notifier?
+				if ((pMsg->m_dsnFlags != SMTPMessage::NEVER) &&
+					(dsnEnvId.empty() == true))
 				{
 					dsnEnvId = MessageDetails::encodeRecipientId(recipIter->second.m_id);
 				}
-
-				setRecipientSpecificHeaders = false;
 			}
 
-			if (setReturnPathHeader == true)
+			if (lookForReturnPath == true)
 			{
 				// Return-Path header
+				// FIXME: this really should not be defined on recipients
 				if (recipIter->second.m_returnPathEmailAddress.empty() == false)
 				{
-					reversePath = recipIter->second.m_returnPathEmailAddress;
+					pMsg->setReversePath(recipIter->second.m_returnPathEmailAddress);
 #ifdef DEBUG
 					clog << "SMTPSession::queueMessage: overrode Return-Path to "
 						<< recipIter->second.m_returnPathEmailAddress << endl;
 #endif
 				}
-				else if (defaultReturnPath.empty() == false)
-				{
-					reversePath = defaultReturnPath;
-#ifdef DEBUG
-					clog << "SMTPSession::queueMessage: reverted to default Return-Path" << endl;
-#endif
-				}
 
-				setReturnPathHeader = false;
+				lookForReturnPath = false;
 			}
 
-			pMsg->setEnvId(dsnEnvId);
-			pMsg->setReversePath(reversePath);
-
-			if ((pMsg->m_pDetails != NULL) &&
-				(pMsg->m_pDetails->m_unsubscribeLink.empty() == false))
+			if ((setUnsubscribeLink == true) &&
+				(pMsg->m_pDetails != NULL) &&
+				(pMsg->m_pDetails->m_unsubscribeLink.empty() == false) &&
+				(unsubscribeLink.empty() == true))
 			{
 				string encodedId(MessageDetails::encodeRecipientId(recipIter->second.m_id));
 				string::size_type eqPos = encodedId.find('=');
@@ -800,7 +828,10 @@ bool SMTPSession::queueMessage(SMTPMessage *pMsg,
 					}
 					eqPos = encodedId.find('=', eqPos);
 				}
-				pMsg->addHeader("List-Unsubscribe", pMsg->m_pDetails->m_unsubscribeLink + encodedId, "");
+
+				unsubscribeLink = pMsg->m_pDetails->m_unsubscribeLink + encodedId;
+
+				setUnsubscribeLink = false;
 			}
 
 			pMsg->addRecipient(emailAddress);
@@ -809,23 +840,41 @@ bool SMTPSession::queueMessage(SMTPMessage *pMsg,
 			++m_msgsCount;
 		}
 
+		if (unsubscribeLink.empty() == false)
+		{
+			pMsg->addHeader("List-Unsubscribe", unsubscribeLink, "");
+		}
+		if (dsnEnvId.empty() == false)
+		{
+			pMsg->setEnvId(dsnEnvId);
+		}
+
 		// Set a CC only if there's a To
 		// If there's no To, use CC
 		// Both may need substitution
 		if (toHeader.empty() == false)
 		{
+#ifdef DEBUG
+			clog << "SMTPSession::queueMessage: To " << toHeader << endl;
+#endif
 			pMsg->addHeader("To",
-				pMsg->m_pDetails->substitute(toHeader, pMsg->m_fieldValues), "");
+				pMsg->substitute(toHeader, pMsg->m_fieldValues), "");
 			if (ccHeader.empty() == false)
 			{
+#ifdef DEBUG
+				clog << "SMTPSession::queueMessage: CC " << ccHeader << endl;
+#endif
 				pMsg->addHeader("CC",
-					pMsg->m_pDetails->substitute(ccHeader, pMsg->m_fieldValues), "");
+					pMsg->substitute(ccHeader, pMsg->m_fieldValues), "");
 			}
 		}
 		else if (ccHeader.empty() == false)
 		{
+#ifdef DEBUG
+			clog << "SMTPSession::queueMessage: To with CC " << ccHeader << endl;
+#endif
 			pMsg->addHeader("To",
-				pMsg->m_pDetails->substitute(ccHeader, pMsg->m_fieldValues), "");
+				pMsg->substitute(ccHeader, pMsg->m_fieldValues), "");
 		}
 
 		// Sign the message
