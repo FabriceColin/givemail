@@ -234,9 +234,6 @@ const char *messageDataCallback(void **ppBuf, int *pLen, void *pArg)
 		case LibESMTPMessage::EXTRA_HEADERS:
 			if (pMsg->m_headersDump.empty() == false)
 			{
-#ifdef DEBUG
-				clog << "LibESMTPProvider: headers " << pMsg->m_headersDump << endl;
-#endif
 				*pLen = (int)pMsg->m_headersDump.length();
 				pBuf = pMsg->m_headersDump.c_str();
 				break;
@@ -748,7 +745,7 @@ string LibESMTPMessage::getUserAgent(void) const
 		return m_pDetails->m_userAgent;
 	}
 
-	return PACKAGE_NAME"/esmtp "PACKAGE_VERSION;
+	return PACKAGE_NAME "/esmtp " PACKAGE_VERSION;
 }
 
 bool LibESMTPMessage::setSignatureHeader(const string &header,
