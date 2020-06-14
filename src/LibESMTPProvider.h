@@ -49,6 +49,7 @@ class LibESMTPMessage : public SMTPMessage
 		Stage m_stage;
 		unsigned int m_currentAttachment;
 		off_t m_encodedPos;
+		std::string m_headersDump;
 		smtp_message_t m_message;
 
 		/// Returns the User-Agent string.
@@ -68,9 +69,6 @@ class LibESMTPMessage : public SMTPMessage
 		/// Adds a recipient.
 		virtual void addRecipient(const std::string &emailAddress);
 
-		/// Gets the headers dump.
-		std::string getHeadersDump(void) const;
-
 		/// Gets headers for an attachment.
 		std::string getAttachmentHeaders(unsigned int attachmentNum,
 			bool inlineParts = false);
@@ -86,7 +84,6 @@ class LibESMTPMessage : public SMTPMessage
 		bool hasMoreAttachmentLines(void) const;
 
 	protected:
-		std::string m_headersDump;
 		bool m_hasMoreLines;
 
 		virtual void buildHeaders(void);

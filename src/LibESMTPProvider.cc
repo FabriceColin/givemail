@@ -216,7 +216,6 @@ const char *messageDataCallback(void **ppBuf, int *pLen, void *pArg)
 		return NULL;
 	}
 
-	string headersDump(pMsg->getHeadersDump());
 	const char *pBuf = NULL;
 
 #ifdef DEBUG
@@ -233,10 +232,13 @@ const char *messageDataCallback(void **ppBuf, int *pLen, void *pArg)
 	switch (pMsg->m_stage)
 	{
 		case LibESMTPMessage::EXTRA_HEADERS:
-			if (headersDump.empty() == false)
+			if (pMsg->m_headersDump.empty() == false)
 			{
-				*pLen = (int)headersDump.length();
-				pBuf = headersDump.c_str();
+#ifdef DEBUG
+				clog << "LibESMTPProvider: headers " << pMsg->m_headersDump << endl;
+#endif
+				*pLen = (int)pMsg->m_headersDump.length();
+				pBuf = pMsg->m_headersDump.c_str();
 				break;
 			}
 			pMsg->m_stage = LibESMTPMessage::START_MIXED;
@@ -791,11 +793,6 @@ void LibESMTPMessage::addRecipient(const string &emailAddress)
 	{
 		smtp_dsn_set_notify(recipient, Notify_FAILURE);
 	}
-}
-
-string LibESMTPMessage::getHeadersDump(void) const
-{
-	return m_headersDump;
 }
 
 string LibESMTPMessage::getAttachmentHeaders(unsigned int attachmentNum,
