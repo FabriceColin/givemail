@@ -152,7 +152,7 @@ void SMTPMessage::buildHeaders(void)
 				suffix = senderEmailAddress.substr(atPos);
 			}
 #ifdef _CAN_SPECIFY_SENDER
-			appendHeader("Sender", "", senderEmailAddress);
+			appendHeader("Sender", senderEmailAddress, "");
 #endif
 			appendHeader("Resent-From", "", senderEmailAddress);
 		}

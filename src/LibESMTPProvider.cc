@@ -184,10 +184,10 @@ string g_extraLine("\r\n");
 string g_startMixed("Content-Type: multipart/mixed;\r\n\tboundary=\"----=_NextMixedPart\"\r\n\r\nThis is a message in multipart MIME format. Your mail client should not be displaying this. Consider upgrading your mail client to view this message correctly.\r\n\r\n------=_NextMixedPart\r\n");
 string g_startAlt("Content-Type: multipart/alternative;\r\n\tboundary=\"----=_NextAltPart\"\r\n\r\n\r\n------=_NextAltPart\r\n");
 string g_startAltNoMulti("Content-Type: multipart/alternative;\r\n\tboundary=\"----=_NextAltPart\"\r\n\r\nThis is a multi-part message in MIME format.\r\n\r\n------=_NextAltPart\r\n");
-string g_startPlain("Content-Type: text/plain;\r\n\tcharset=\"UTF-8\"\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n");
+string g_startPlain("Content-Type: text/plain; charset=\"utf-8\"\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n");
 string g_altTransition("------=_NextAltPart\r\n");
 string g_startRelated("Content-Type: multipart/related;\r\n\tboundary=\"----=_NextRelatedPart\"\r\n\r\n------=_NextRelatedPart\r\n");
-string g_startHtml("Content-Type: text/html;\r\n\tcharset=\"UTF-8\"\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n");
+string g_startHtml("Content-Type: text/html; charset=\"utf-8\"\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n");
 string g_startInline("------=_NextRelatedPart\r\n");
 string g_endRelated("\r\n------=_NextRelatedPart--\r\n\r\n");
 string g_endAlt("\r\n------=_NextAltPart--\r\n\r\n");
@@ -287,9 +287,16 @@ const char *messageDataCallback(void **ppBuf, int *pLen, void *pArg)
 			if ((pMsg->m_plainContent.empty() == false) &&
 				(pMsg->m_plainContent[pMsg->m_htmlContent.length()] != '\n'))
 			{
-				*pLen = (int)g_extraLine.length();
-				pBuf = g_extraLine.c_str();
-				break;
+				// Insert an extra line only if something else follows
+				if ((pMsg->m_htmlContent.empty() == false) ||
+				    (pMsg->requiresAlternativeParts() == true) ||
+					(pMsg->requiresRelatedParts() == true) ||
+					(pMsg->requiresMixedParts() == true))
+				{
+					*pLen = (int)g_extraLine.length();
+					pBuf = g_extraLine.c_str();
+					break;
+				}
 			}
 			pMsg->m_stage = LibESMTPMessage::ALT_TRANSITION;
 		case LibESMTPMessage::ALT_TRANSITION:
