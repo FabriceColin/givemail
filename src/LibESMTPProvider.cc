@@ -907,11 +907,17 @@ string LibESMTPProvider::getMessageData(SMTPMessage *pMsg)
 		return "";
 	}
 
-	string reversePath(pMsg->getReversePath());
+	LibESMTPMessage *pESMTPMsg = dynamic_cast<LibESMTPMessage*>(pMsg);
+	if (pESMTPMsg == NULL)
+	{
+		return "";
+	}
+
+	string reversePath(pESMTPMsg->getReversePath());
 
 	if (reversePath.empty() == false)
 	{
-		smtp_set_reverse_path(pMsg->m_message, reversePath.c_str());
+		smtp_set_reverse_path(pESMTPMsg->m_message, reversePath.c_str());
 #ifdef DEBUG
 		clog << "LibESMTPProvider::getMessageData: set Return-Path to "
 			<< reversePath << endl;
