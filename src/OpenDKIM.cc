@@ -423,6 +423,9 @@ bool OpenDKIM::lockedVerify(const string &messageData,
 
 		return false;
 	}
+#ifdef DEBUG
+	clog << "OpenDKIM::verify: success" << endl;
+#endif
 
 	return true;
 }

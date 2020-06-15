@@ -74,7 +74,7 @@ givemaild, create a new .conf file and edit the database block :
 <?xml version="1.0" encoding="utf-8"?>
 <givemail>
 	<database>
-		<hostname>example.com</hostname>
+		<hostname>db.mydomain.com</hostname>
 		<databasename>MyGiveMailDB</databasename>
 		<username>toto</username>
 		<password>titi</password>
@@ -116,7 +116,7 @@ To test the engine, run :
    $ ./src/givemail -c sample-emails/givemail.conf -x sample-emails/test-email.xml -u 1:me mailinator.com bozotheclown@mailinator.com Bozo
 
 To test DKIM signatures, run :
-   $ GIVEMAIL_VERIFY_SIGNATURES=Y GIVEMAIL_DONT_SEND=Y ./src/givemail -c sample-emails/givemail.conf -m TestPrefixId -e example.com -x sample-emails/test-fields.xml some.one@gmail.com "Some One"
+   $ GIVEMAIL_VERIFY_SIGNATURES=Y GIVEMAIL_DONT_SEND=Y ./src/givemail -c sample-emails/givemail.conf -x sample-emails/plain-only.xml -m TestPrefixId -e mailinator.com bozotheclown@mailinator.com Bozo
 
 To sign a message prior to posting to the WebAPI, run :
    $ webapi-key-manager --conf sample-emails/givemail.conf --sign sample-api-calls/list-campaigns.xml 1a60838a-7c5c-102b-af7a-0030485eff82

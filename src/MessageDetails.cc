@@ -623,7 +623,12 @@ bool MessageDetails::checkFields(const string &contentType)
 {
 	string content(getContent(contentType));
 
-	// Does content have any recipient-specific field?
+	if (content.empty() == true)
+	{
+		return false;
+	}
+
+	// Does this content have any recipient-specific field?
 	if ((CTemplateSubstituter::hasField(content, "Name") == true) ||
 		(CTemplateSubstituter::hasField(content, "emailaddress") == true) ||
 		(CTemplateSubstituter::hasField(content, "recipientId") == true))
@@ -633,9 +638,6 @@ bool MessageDetails::checkFields(const string &contentType)
 #endif
 		return true;
 	}
-#ifdef DEBUG
-	clog << "MessageDetails::checkFields: content type " << contentType << " (" << content.size() <<  " bytes) is not personalized" << endl;
-#endif
 
 	return false;
 }
