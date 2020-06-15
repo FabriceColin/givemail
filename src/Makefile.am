@@ -48,8 +48,6 @@ noinst_HEADERS = \
 
 noinst_LTLIBRARIES = libMailUtils.la libCommon.la libMailCore.la
 
-lib_LTLIBRARIES = libgivemail.la
-
 if HAVE_FASTCGI
 bin_PROGRAMS = csv2givemail givemail givemaild webapi-key-manager webapi.fcgi
 else
@@ -171,19 +169,6 @@ givemaild_LDADD = \
 	@PTHREAD_LIBS@
 
 givemaild_DEPENDENCIES = libCommon.la libMailUtils.la libMailCore.la
-
-libgivemail_la_SOURCES =
-
-libgivemail_la_LDFLAGS = -module -version-info 0:0:0 -shared -nostartfiles
-
-libgivemail_la_LIBADD = \
-	-lMailCore -lMailUtils -lCommon \
-	@RESOLV_LIB@ \
-	-lctemplate \
-	@SMTP_LIBS@ \
-	@OPENSSL_LIBS@
-
-libgivemail_la_DEPENDENCIES = libMailUtils.la libMailCore.la
 
 webapi_key_manager_SOURCES = \
 	AuthSQL.cc \

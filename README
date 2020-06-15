@@ -23,7 +23,6 @@ autotools and g++ toolchain
 as well as one of:
 
 libetpan			>= 1.9.4	http://www.etpan.org/
-of
 libesmtp			>= 1.0.6	http://www.stafford.uklinux.net/libesmtp/
 
 Building Givemail
