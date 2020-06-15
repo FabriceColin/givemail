@@ -18,8 +18,8 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _SUBSTITUTE_H_
-#define _SUBSTITUTE_H_
+#ifndef _SUBSTITUTER_H_
+#define _SUBSTITUTER_H_
 
 #include <map>
 #include <set>
@@ -27,13 +27,13 @@
 #include <ctemplate/template.h>
 
 /// Substitutes fields in content with their actual values.
-class Substitute
+class Substituter
 {
 	public:
-		Substitute(const std::string &dictionaryId,
+		Substituter(const std::string &dictionaryId,
 			const std::string &contentTemplate,
 			bool escapeEntities);
-		virtual ~Substitute();
+		virtual ~Substituter();
 
 		/// Returns whether there are fields to substitute in the content.
 		virtual bool hasFields(void) const = 0;
@@ -50,19 +50,19 @@ class Substitute
 		bool m_escapeEntities;
 
 	private:
-		Substitute(const Substitute &other);
-		Substitute &operator=(const Substitute &other);
+		Substituter(const Substituter &other);
+		Substituter &operator=(const Substituter &other);
 
 };
 
 /// Substitutes fields in content with their actual values.
-class CTemplateSubstitute : public Substitute
+class CTemplateSubstituter : public Substituter
 {
 	public:
-		CTemplateSubstitute(const std::string &dictionaryId,
+		CTemplateSubstituter(const std::string &dictionaryId,
 			const std::string &contentTemplate,
 			bool escapeEntities);
-		virtual ~CTemplateSubstitute();
+		virtual ~CTemplateSubstituter();
 
 		/// Returns whether there are fields to substitute in the content.
 		virtual bool hasFields(void) const;
@@ -82,8 +82,8 @@ class CTemplateSubstitute : public Substitute
 		ctemplate::TemplateDictionary m_dict;
 
 	private:
-		CTemplateSubstitute(const CTemplateSubstitute &other);
-		CTemplateSubstitute &operator=(const CTemplateSubstitute &other);
+		CTemplateSubstituter(const CTemplateSubstituter &other);
+		CTemplateSubstituter &operator=(const CTemplateSubstituter &other);
 
 };
-#endif // _SUBSTITUTE_H_
+#endif // _SUBSTITUTER_H_

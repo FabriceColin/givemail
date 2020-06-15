@@ -49,7 +49,7 @@
 #include "Recipient.h"
 #include "SMTPSession.h"
 #include "StatusUpdater.h"
-#include "Substitute.h"
+#include "Substituter.h"
 #include "Threads.h"
 #include "Timer.h"
 #include "XmlMessageDetails.h"

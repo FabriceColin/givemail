@@ -103,8 +103,8 @@ void SMTPMessage::substituteContent(const map<string, string> &fieldValues)
 		return;
 	}
 
-	m_pDetails->getPlainSubstituteObj(m_msgId + "p")->substitute(fieldValues, m_plainContent);
-	m_pDetails->getHtmlSubstituteObj(m_msgId + "h")->substitute(fieldValues, m_htmlContent);
+	m_pDetails->getPlainSubstituter(m_msgId + "p")->substitute(fieldValues, m_plainContent);
+	m_pDetails->getHtmlSubstituter(m_msgId + "h")->substitute(fieldValues, m_htmlContent);
 }
 
 void SMTPMessage::buildHeaders(void)

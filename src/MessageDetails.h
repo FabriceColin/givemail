@@ -26,7 +26,7 @@
 #include <set>
 #include <map>
 
-#include "Substitute.h"
+#include "Substituter.h"
 
 /// An attachment.
 class Attachment
@@ -116,11 +116,11 @@ class MessageDetails
 		/// Gets the encoding of the specified type, if any.
 		std::string getEncoding(const std::string &contentType) const;
 
-		/// Gets a Substitute object for plain text content.
-		Substitute *getPlainSubstituteObj(const std::string &dictionaryId);
+		/// Gets a Substituter for plain text content.
+		Substituter *getPlainSubstituter(const std::string &dictionaryId);
 
-		/// Gets a Substitute object for HTML content.
-		Substitute *getHtmlSubstituteObj(const std::string &dictionaryId);
+		/// Gets a Substituter for HTML content.
+		Substituter *getHtmlSubstituter(const std::string &dictionaryId);
 
 		/// Substitutes short strings such as subject.
 		std::string substitute(const std::string &dictionaryId,
@@ -166,15 +166,15 @@ class MessageDetails
 
 	protected:
 		unsigned int m_version;
-		Substitute *m_pPlainSub;
-		Substitute *m_pHtmlSub;
+		Substituter *m_pPlainSub;
+		Substituter *m_pHtmlSub;
 		std::vector<Attachment *> m_attachments;
 		unsigned int m_attachmentsCount;
 		unsigned int m_inlinePartsCount;
 
 		bool checkFields(const std::string &contentType);
 
-		Substitute *newSubstitute(const std::string &dictionaryId,
+		Substituter *newSubstituter(const std::string &dictionaryId,
 			const std::string &contentTemplate,
 			bool escapeEntities);
 

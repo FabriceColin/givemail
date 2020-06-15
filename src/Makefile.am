@@ -37,7 +37,7 @@ noinst_HEADERS = \
 	SMTPProvider.h \
 	SMTPSession.h \
 	StatusUpdater.h \
-	Substitute.h \
+	Substituter.h \
 	Threads.h \
 	TimeConverter.h \
 	Timer.h \
@@ -84,7 +84,7 @@ libMailUtils_la_SOURCES = \
 	Resolver.cc \
 	SMTPOptions.cc \
 	StatusUpdater.cc \
-	Substitute.cc
+	Substituter.cc
 
 libCommon_la_SOURCES = \
 	Campaign.cc \

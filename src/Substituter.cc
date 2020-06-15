@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-#include "Substitute.h"
+#include "Substituter.h"
 
 using std::clog;
 using std::endl;
@@ -28,29 +28,29 @@ using std::map;
 using std::string;
 using namespace ctemplate;
 
-Substitute::Substitute(const string &dictionaryId,
+Substituter::Substituter(const string &dictionaryId,
 	const string &contentTemplate, bool escapeEntities) :
 	m_contentTemplate(contentTemplate),
 	m_escapeEntities(escapeEntities)
 {
 }
 
-Substitute::~Substitute()
+Substituter::~Substituter()
 {
 }
 
-CTemplateSubstitute::CTemplateSubstitute(const string &dictionaryId,
+CTemplateSubstituter::CTemplateSubstituter(const string &dictionaryId,
 	const string &contentTemplate, bool escapeEntities) :
-	Substitute(dictionaryId, contentTemplate, escapeEntities),
+	Substituter(dictionaryId, contentTemplate, escapeEntities),
 	m_dict(dictionaryId)
 {
 }
 
-CTemplateSubstitute::~CTemplateSubstitute()
+CTemplateSubstituter::~CTemplateSubstituter()
 {
 }
 
-bool CTemplateSubstitute::hasFields(void) const
+bool CTemplateSubstituter::hasFields(void) const
 {
 	string::size_type startPos = m_contentTemplate.find("{{");
 	string::size_type endPos = m_contentTemplate.find("}}");
@@ -65,7 +65,7 @@ bool CTemplateSubstitute::hasFields(void) const
 	return false;
 }
 
-bool CTemplateSubstitute::hasField(const string &contentTemplate,
+bool CTemplateSubstituter::hasField(const string &contentTemplate,
 	const string &fieldName)
 {
 	string::size_type fieldPos = contentTemplate.find(string("{{") + fieldName);
@@ -79,12 +79,12 @@ bool CTemplateSubstitute::hasField(const string &contentTemplate,
 	return false;
 }
 
-bool CTemplateSubstitute::hasField(const string &fieldName) const
+bool CTemplateSubstituter::hasField(const string &fieldName) const
 {
 	return hasField(m_contentTemplate, fieldName);
 }
 
-void CTemplateSubstitute::substitute(const map<string, string> &fieldValues,
+void CTemplateSubstituter::substitute(const map<string, string> &fieldValues,
 	string &content)
 {
 	// Set dictionary values

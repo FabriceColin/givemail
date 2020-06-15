@@ -42,7 +42,7 @@
 #include "Recipient.h"
 #include "Resolver.h"
 #include "SMTPSession.h"
-#include "Substitute.h"
+#include "Substituter.h"
 #include "Threads.h"
 #include "Timer.h"
 #ifdef USE_MYSQL

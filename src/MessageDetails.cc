@@ -330,22 +330,22 @@ string MessageDetails::createMessageId(const string &suffix, bool isReplyId)
 	return messageId;
 }
 
-Substitute *MessageDetails::getPlainSubstituteObj(const string &dictionaryId)
+Substituter *MessageDetails::getPlainSubstituter(const string &dictionaryId)
 {
 	if (m_pPlainSub == NULL)
 	{
-		m_pPlainSub = newSubstitute(dictionaryId,
+		m_pPlainSub = newSubstituter(dictionaryId,
 			getContent("text/plain"), false);
 	}
 
 	return m_pPlainSub;
 }
 
-Substitute *MessageDetails::getHtmlSubstituteObj(const string &dictionaryId)
+Substituter *MessageDetails::getHtmlSubstituter(const string &dictionaryId)
 {
 	if (m_pHtmlSub == NULL)
 	{
-		m_pHtmlSub = newSubstitute(dictionaryId,
+		m_pHtmlSub = newSubstituter(dictionaryId,
 			getContent("/html"), true);
 	}
 
@@ -356,7 +356,7 @@ string MessageDetails::substitute(const string &dictionaryId,
 	const string &content, const map<string, string> &fieldValues)
 {
 	// m_version 1 is obsolete
-	Substitute *pSub = new CTemplateSubstitute(dictionaryId,
+	Substituter *pSub = new CTemplateSubstituter(dictionaryId,
 		content, false);
 	string subContent;
 
@@ -585,7 +585,7 @@ string MessageDetails::getContent(const string &contentType) const
 			(pContentObj->m_contentType.find(contentType) != string::npos) &&
 			(pContentObj->m_pContent != NULL))
 		{
-			// FIXME: don't copy, adapt Substitute accordingly
+			// FIXME: don't copy, adapt Substituter accordingly
 			return string(pContentObj->m_pContent,
 				pContentObj->m_contentLength);
 		}
@@ -624,9 +624,9 @@ bool MessageDetails::checkFields(const string &contentType)
 	string content(getContent(contentType));
 
 	// Does content have any recipient-specific field?
-	if ((CTemplateSubstitute::hasField(content, "Name") == true) ||
-		(CTemplateSubstitute::hasField(content, "emailaddress") == true) ||
-		(CTemplateSubstitute::hasField(content, "recipientId") == true))
+	if ((CTemplateSubstituter::hasField(content, "Name") == true) ||
+		(CTemplateSubstituter::hasField(content, "emailaddress") == true) ||
+		(CTemplateSubstituter::hasField(content, "recipientId") == true))
 	{
 #ifdef DEBUG
 		clog << "MessageDetails::checkFields: content type " << contentType << " is personalized" << endl;
@@ -640,11 +640,11 @@ bool MessageDetails::checkFields(const string &contentType)
 	return false;
 }
 
-Substitute *MessageDetails::newSubstitute(const string &dictionaryId,
+Substituter *MessageDetails::newSubstituter(const string &dictionaryId,
 	const string &contentTemplate, bool escapeEntities)
 {
 	// m_version 1 is obsolete
-	Substitute *pSub = new CTemplateSubstitute(dictionaryId,
+	Substituter *pSub = new CTemplateSubstituter(dictionaryId,
 		contentTemplate, escapeEntities);
 
 	return pSub;
