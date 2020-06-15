@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2014 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -336,10 +336,10 @@ static void catchSignals(int sigNum)
 				string commandStr(pConfig->m_endOfCampaignCommand);
 
 				// We may have to customize parameters
-				string::size_type idPos = commandStr.find("{campaignId}");
+				string::size_type idPos = commandStr.find("{{campaignId}}");
 				if (idPos != string::npos)
 				{
-					commandStr.replace(idPos, 12, slaveInfo.m_campaignId);
+					commandStr.replace(idPos, 14, slaveInfo.m_campaignId);
 				}
 
 				Process process(commandStr, true);

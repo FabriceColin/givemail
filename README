@@ -1,9 +1,11 @@
 Givemail
+https://github.com/FabriceColin/givemail
+ previously hosted at https://code.google.com/p/givemail/
+
 Copyright 2009-2020 Fabrice Colin
 Copyright 2008 Global Sign In
 Base64.cc includes code Copyright 2005 Nokia Corporation.
 QuotedPrintable.cc includes code Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007 Free Software Foundation, Inc.
-
 
 Dependencies
 ------------
@@ -90,9 +92,6 @@ To generate the doxygen documentation, run :
 To generate the manual pages, run :
    $ make manuals
 
-To test the engine, run :
-   $ givemail --conf /path/to/givemail.conf --xml-file /path/to/sample-emails/test-email.xml mailinator.com bozotheclown@mailinator.com Bozo
-
 To enable debugging (libetpan only), run :
    $ export GIVEMAIL_DEBUG=Y
 
@@ -113,16 +112,18 @@ To specify a SMTP relay, run :
    $ export GIVEMAIL_RELAY_USER_NAME=username
    $ export GIVEMAIL_RELAY_PASSWORD=password
 
+To test the engine, run :
+   $ ./src/givemail -c sample-emails/givemail.conf -x sample-emails/test-email.xml -u 1:me mailinator.com bozotheclown@mailinator.com Bozo
+
 To test DKIM signatures, run :
-   $ GIVEMAIL_VERIFY_SIGNATURES=Y GIVEMAIL_DONT_SEND=Y ./src/givemail -c /path/to/sample-emails/givemail.conf -m TestPrefixId -e example.com -x /path/to/sample-emails/test-fields.xml some.one@gmail.com "Some One"
+   $ GIVEMAIL_VERIFY_SIGNATURES=Y GIVEMAIL_DONT_SEND=Y ./src/givemail -c sample-emails/givemail.conf -m TestPrefixId -e example.com -x sample-emails/test-fields.xml some.one@gmail.com "Some One"
 
 To sign a message prior to posting to the WebAPI, run :
-   $ webapi-key-manager --conf /path/to/givemail.conf --sign /path/to/sample-api-calls/list-campaigns.xml 1a60838a-7c5c-102b-af7a-0030485eff82
+   $ webapi-key-manager --conf sample-emails/givemail.conf --sign sample-api-calls/list-campaigns.xml 1a60838a-7c5c-102b-af7a-0030485eff82
 and follow the instructions given by webapi-key-manager.
 
 To test the WebAPI on the command line, run :
-   $ export WEBAPI_NO_FCGI=Y
-   $ webapi.fcgi < /path/to/sample-api-calls/list-campaigns.xml
+   $ WEBAPI_NO_FCGI=Y webapi.fcgi < sample-api-calls/list-campaigns.xml
 
 To override the configuration file to be used by the WebAPI, edit /etc/httpd/conf.d/fcgid.conf and add :
    DefaultInitEnv WEBAPI_CONFIGURATION_FILE /path/to/givemail.conf

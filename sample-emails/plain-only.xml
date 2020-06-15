@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<email>
+<email version="2">
 <subject>Test (plain only)</subject>
 <from>
 	<name>Fabrice Colin</name>
@@ -10,7 +10,7 @@
 	<emailaddress>fabrice.colin@example.com</emailaddress>
 </replyto>
 <sender>fabrice.colin</sender>
-<plaintext><![CDATA[Hello {Name},
+<plaintext><![CDATA[Hello {{Name}},
 This is a test]]></plaintext>
 <html></html>
 </email>

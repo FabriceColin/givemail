@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <email version="2">
-<subject>Test (HTML only)</subject>
+<subject>Test</subject>
+<cc>{{customfield3}}</cc>
 <from>
-	<name>Fabrice Colin</name>
+	<name>Fabrice Colin{{customfield2}}</name>
 	<emailaddress>fabrice.colin@example.com</emailaddress>
 </from>
 <replyto>
@@ -10,7 +11,8 @@
 	<emailaddress>fabrice.colin@example.com</emailaddress>
 </replyto>
 <sender>fabrice.colin</sender>
-<plaintext></plaintext>
+<plaintext><![CDATA[Hello {{Name}},
+This is a test]]></plaintext>
 <html><![CDATA[<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML><HEAD>
 <TITLE>Test</TITLE>
@@ -18,7 +20,11 @@
 </HEAD>
 <BODY>
 Hello {{Name}},
-This is <b>a test</b>
+This is <b>{{customfield1}}</b>
 </BODY>
 </HTML>]]></html>
+<attachment>
+	<filename>Test.txt</filename>
+	<content>This is a simple attachment</content>
+</attachment>
 </email>

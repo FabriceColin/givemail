@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<email>
+<email version="2">
 <subject>Test with multiple attachments</subject>
 <from>
 	<name>Fabrice Colin</name>
@@ -10,7 +10,7 @@
 	<emailaddress>fabrice.colin@example.com</emailaddress>
 </replyto>
 <sender>fabrice.colin</sender>
-<plaintext encoding="7bit"><![CDATA[Hello {Name},
+<plaintext encoding="7bit"><![CDATA[Hello {{Name}},
 This is a test]]></plaintext>
 <attachment type="text/plain" encoding="8bit">
 	<filename>a.txt</filename>
