@@ -22,7 +22,7 @@ src/Resolver.cc
 src/SMTPMessage.cc
 src/SMTPSession.cc
 src/StatusUpdater.cc
-src/Substitute.cc
+src/Substituter.cc
 src/Threads.cc
 src/TimeConverter.cc
 src/Timer.cc
