@@ -69,7 +69,6 @@ make documentation
 %install
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && /bin/rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
-/bin/rm -f ${RPM_BUILD_ROOT}%{_libdir}/libgivemail.so ${RPM_BUILD_ROOT}%{_libdir}/libgivemail.la
 
 %post
 if [ $1 = 1 ]; then
@@ -106,14 +105,13 @@ fi
 
 %files
 %defattr(-, root, root, -)
-%doc AUTHORS ChangeLog COPYING.LIB NEWS README TODO docs/html
+%doc AUTHORS ChangeLog COPYING.LIB NEWS README TODO
 %config(noreplace) %{_sysconfdir}/givemail
 %config(noreplace) %{_sysconfdir}/logrotate.d/givemaild
 %{_sysconfdir}/rc.d/init.d/givemaild
 %{_bindir}/givemaild
 %{_bindir}/givemail
 %{_bindir}/csv2givemail
-%{_libdir}/libgivemail.so.*
 %{_datadir}/givemail/sample-emails
 %{_mandir}/man1/givemail*
 %{_mandir}/man1/csv2givemail*
