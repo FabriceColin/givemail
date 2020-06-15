@@ -64,14 +64,6 @@ class SMTPSession
 			std::map<std::string, Recipient> &destinations,
 			StatusUpdater *pUpdater);
 
-		/// Queues, and possibly dispatches, a message to the given recipients.
-		bool queueMessage(SMTPMessage *pMsg, DomainAuth &domainAuth,
-			std::map<std::string, Recipient> &recipients,
-			StatusUpdater *pUpdater);
-
-		/// Dispatches all queued messages.
-		bool dispatchMessages(StatusUpdater *pUpdater, bool force);
-
 		/// Dumps a message.
 		std::string dumpMessage(SMTPMessage *pMsg, const std::string &dummyName,
 			const std::string &dummyEmailAddress);
@@ -127,6 +119,14 @@ class SMTPSession
 
 		/// Returns true if this record was previously discarded.
 		bool isDiscarded(const ResourceRecord &aRecord);
+
+		/// Queues, and possibly dispatches, a message to the given recipients.
+		bool queueMessage(SMTPMessage *pMsg, DomainAuth &domainAuth,
+			std::map<std::string, Recipient> &recipients,
+			StatusUpdater *pUpdater, bool isPersonalized);
+
+		/// Dispatches all queued messages.
+		bool dispatchMessages(StatusUpdater *pUpdater, bool force);
 
 		/// Signs a message prior to sending.
 		bool signMessage(SMTPMessage *pMsg, DomainAuth &domainAuth);

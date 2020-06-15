@@ -441,255 +441,9 @@ bool SMTPSession::isDiscarded(const ResourceRecord &aRecord)
 	return false;
 }
 
-bool SMTPSession::signMessage(SMTPMessage *pMsg, DomainAuth &domainAuth)
-{
-	if ((pMsg == NULL) ||
-		(m_pProvider == NULL))
-	{
-		return false;
-	}
-
-	string fullMessage(m_pProvider->getMessageData(pMsg));
-
-	// Proceed if keys etc are not set and signing isn't possible
-	if (domainAuth.canSign() == false)
-	{
-		return true;
-	}
-
-	// Sign the message
-	if ((domainAuth.sign(fullMessage, pMsg, false) == true) &&
-		((m_verifySignatures == false) || (domainAuth.verify(fullMessage, pMsg) == true)))
-	{
-		string signatureHeader(pMsg->getSignatureHeader());
-
-#ifdef DEBUG
-		clog << "SMTPSession::signMessage: signature is '" << signatureHeader << endl;
-#endif
-		m_msgsDataSize += fullMessage.length() + signatureHeader.length();
-
-		return true;
-	}
-
-	return false;
-}
-
-string SMTPSession::getDomainName(void) const
-{
-	return m_domainLimits.m_domainName;
-}
-
-unsigned int SMTPSession::getTopMXServersCount(void) const
-{
-	return m_topQueue.size();
-}
-
-bool SMTPSession::cycleServers(void)
-{
-	if (m_topQueue.empty() == true)
-	{
-		// No more records in this priority, queue the next bunch
-		if (queueNextPriorityRecords() == false)
-		{
-			// We have run out of MX records to try...
-			// Get them all again
-			if (initializeTopQueue() == false)
-			{
-				return false;
-			}
-		}
-	}
-
-	time_t timeNow = time(NULL);
-
-	// Cycle through MX records
-	while (m_topQueue.empty() == false)
-	{
-		ResourceRecord frontRecord(m_topQueue.front());
-
-		m_topQueue.pop();
-
-		// Is this record still alive ? Set it as server
-		if ((frontRecord.hasExpired(timeNow) == false) &&
-			(setServer(frontRecord) == true))
-		{
-			// Push it back in the queue
-			m_topQueue.push(frontRecord);
-
-			return true;
-		}
-		// Either it's expired, or can't be used as server
-
-#ifdef DEBUG
-		clog << "SMTPSession::cycleServers: MX record " << frontRecord.m_hostName
-			<< " has expired or has no usable address" << endl;
-#endif
-		if (m_topQueue.empty() == true)
-		{
-			// Try the next priority
-			if (queueNextPriorityRecords() == false)
-			{
-				// ...or get all MX records again
-				if (initializeTopQueue() == false)
-				{
-					break;
-				}
-			}
-		}
-	}
-
-	return false;
-}
-
-bool SMTPSession::generateMessages(DomainAuth &domainAuth,
-	MessageDetails *pDetails, map<string, Recipient> &destinations,
-	StatusUpdater *pUpdater)
-{
-	map<string, string> fieldValues;
-	set<SMTPMessage *> messages;
-	bool messageOk = true;
-
-	if ((pDetails == NULL) ||
-		(m_pProvider == NULL))
-	{
-		return false; 
-	}
-
-	if (destinations.empty() == true)
-	{
-		return true;
-	}
-	clog << destinations.size() << " recipients on domain " << m_domainLimits.m_domainName << endl;
-
-	Timer generationTimer;
-	SMTPMessage::DSNNotification dsnNotify = SMTPMessage::NEVER;
-
-	// Activate DSN ?
-	if (m_options.m_dsnNotify == "SUCCESS")
-	{
-		dsnNotify = SMTPMessage::SUCCESS;
-	}
-	else if (m_options.m_dsnNotify == "FAILURE")
-	{
-		dsnNotify = SMTPMessage::FAILURE;
-	}
-#ifdef DEBUG
-	clog << "SMTPSession::generateMessages: DSN notification " << m_options.m_dsnNotify << " " << dsnNotify << endl;
-#endif
-
-	// Can we send the same message to all recipients ?
-	if (pDetails->isRecipientPersonalized() == false)
-	{
-		// Yes, we can !
-		map<string, Recipient>::iterator destIter = destinations.begin();
-		if (destIter != destinations.end())
-		{
-			// Get non-recipient related (hopefully) custom fields from the first recipient
-			fieldValues = destIter->second.m_customFields;
-		}
-
-		SMTPMessage *pMessage = m_pProvider->newMessage(fieldValues, pDetails,
-			dsnNotify, false, m_options.m_msgIdSuffix, m_options.m_complaints);
-		messages.insert(pMessage);
-#ifdef DEBUG
-		clog << "SMTPSession::generateMessages: one message for all recipients" << endl;
-#endif
-
-		// Queue the message
-		if (queueMessage(pMessage, domainAuth,
-			destinations, pUpdater) == false)
-		{
-			messageOk = false;
-		}
-	}
-	else
-	{
-		// Each destination requires its own message unfortunately
-		for (map<string, Recipient>::iterator destIter = destinations.begin();
-			destIter != destinations.end(); ++destIter)
-		{
-			map<string, Recipient> recipients;
-			string name(destIter->second.m_name);
-			string emailAddress(destIter->second.m_emailAddress);
-
-			// Fields should be substituted with these values
-			fieldValues["Name"] = name;
-			fieldValues["emailaddress"] = emailAddress;
-			fieldValues["recipientId"] = MessageDetails::encodeRecipientId(destIter->second.m_id);
-			for (map<string, string>::iterator customIter = destIter->second.m_customFields.begin();
-				customIter != destIter->second.m_customFields.end(); ++customIter)
-			{
-				fieldValues[customIter->first] = customIter->second;
-#ifdef DEBUG
-				clog << "SMTPSession::generateMessages: field " << customIter->first << "=" << customIter->second << endl;
-#endif
-			}
-
-			recipients[emailAddress] = destIter->second;
-
-			SMTPMessage *pMessage = m_pProvider->newMessage(fieldValues, pDetails,
-				dsnNotify, false, m_options.m_msgIdSuffix, m_options.m_complaints);
-			messages.insert(pMessage);
-#ifdef DEBUG
-			clog << "SMTPSession::generateMessages: message specific to " << emailAddress << endl;
-#endif
-
-			// Queue the message
-			// FIXME: it might not be a good idea to queue too many messages, especially if content is huge
-			if (queueMessage(pMessage, domainAuth,
-				recipients, pUpdater) == false)
-			{
-				messageOk = false;
-			}
-		}
-	}
-	clog << "Queued " << messages.size() << " messages (" << m_msgsDataSize
-		<< " signed bytes) for domain " << m_domainLimits.m_domainName
-		<< " in " << generationTimer.stop() / 1000 << " seconds" << endl;
-
-	generationTimer.start();
-
-	// Force a send
-	if ((m_msgsDataSize == 0) ||
-		(dispatchMessages(pUpdater, true) == false))
-	{
-		messageOk = false;
-	}
-
-	clog << "Dispatched " << messages.size() << " messages to " << m_domainLimits.m_domainName
-		<< " in " << generationTimer.stop() / 1000 << " seconds" << endl;
-
-	generationTimer.start();
-
-	// Delete all messages
-	for (set<SMTPMessage *>::const_iterator msgIter = messages.begin();
-		msgIter != messages.end(); ++msgIter)
-	{
-		SMTPMessage *pMsg = (*msgIter);
-
-#ifdef DEBUG
-		if ((messageOk == false) &&
-			(m_pProvider->isInternalError(m_errorNum) == true))
-		{
-			clog << "SMTPSession::generateMessages: SMTP provider failed on below message" << endl
-				<< dumpMessage(pMsg, "", "") << endl;
-		}
-#endif
-		if (m_options.m_dumpFileBaseName.empty() == false)
-		{
-			pMsg->dumpToFile(m_options.m_dumpFileBaseName);
-		}
-		delete pMsg;
-	}
-
-	clog << "Deleted messages in " << generationTimer.stop() / 1000 << " seconds" << endl;
-
-	return messageOk;
-}
-
 bool SMTPSession::queueMessage(SMTPMessage *pMsg,
 	DomainAuth &domainAuth, map<string, Recipient> &recipients,
-	StatusUpdater *pUpdater)
+	StatusUpdater *pUpdater, bool isPersonalized)
 {
 	ConfigurationFile *pConfig = ConfigurationFile::getInstance("");
 	bool setRecipientSpecificHeaders = true;
@@ -711,7 +465,7 @@ bool SMTPSession::queueMessage(SMTPMessage *pMsg,
 	}
 
 	// Set To here?
-	if (pMsg->m_pDetails->isRecipientPersonalized() == true)
+	if (isPersonalized == true)
 	{
 		setRecipientSpecificHeaders = false;
 		setUnsubscribeLink = true;
@@ -1010,6 +764,252 @@ bool SMTPSession::dispatchMessages(StatusUpdater *pUpdater, bool force)
 	}
 
 	return serverOk;
+}
+
+bool SMTPSession::signMessage(SMTPMessage *pMsg, DomainAuth &domainAuth)
+{
+	if ((pMsg == NULL) ||
+		(m_pProvider == NULL))
+	{
+		return false;
+	}
+
+	string fullMessage(m_pProvider->getMessageData(pMsg));
+
+	// Proceed if keys etc are not set and signing isn't possible
+	if (domainAuth.canSign() == false)
+	{
+		return true;
+	}
+
+	// Sign the message
+	if ((domainAuth.sign(fullMessage, pMsg, false) == true) &&
+		((m_verifySignatures == false) || (domainAuth.verify(fullMessage, pMsg) == true)))
+	{
+		string signatureHeader(pMsg->getSignatureHeader());
+
+#ifdef DEBUG
+		clog << "SMTPSession::signMessage: signature is '" << signatureHeader << endl;
+#endif
+		m_msgsDataSize += fullMessage.length() + signatureHeader.length();
+
+		return true;
+	}
+
+	return false;
+}
+
+string SMTPSession::getDomainName(void) const
+{
+	return m_domainLimits.m_domainName;
+}
+
+unsigned int SMTPSession::getTopMXServersCount(void) const
+{
+	return m_topQueue.size();
+}
+
+bool SMTPSession::cycleServers(void)
+{
+	if (m_topQueue.empty() == true)
+	{
+		// No more records in this priority, queue the next bunch
+		if (queueNextPriorityRecords() == false)
+		{
+			// We have run out of MX records to try...
+			// Get them all again
+			if (initializeTopQueue() == false)
+			{
+				return false;
+			}
+		}
+	}
+
+	time_t timeNow = time(NULL);
+
+	// Cycle through MX records
+	while (m_topQueue.empty() == false)
+	{
+		ResourceRecord frontRecord(m_topQueue.front());
+
+		m_topQueue.pop();
+
+		// Is this record still alive ? Set it as server
+		if ((frontRecord.hasExpired(timeNow) == false) &&
+			(setServer(frontRecord) == true))
+		{
+			// Push it back in the queue
+			m_topQueue.push(frontRecord);
+
+			return true;
+		}
+		// Either it's expired, or can't be used as server
+
+#ifdef DEBUG
+		clog << "SMTPSession::cycleServers: MX record " << frontRecord.m_hostName
+			<< " has expired or has no usable address" << endl;
+#endif
+		if (m_topQueue.empty() == true)
+		{
+			// Try the next priority
+			if (queueNextPriorityRecords() == false)
+			{
+				// ...or get all MX records again
+				if (initializeTopQueue() == false)
+				{
+					break;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+bool SMTPSession::generateMessages(DomainAuth &domainAuth,
+	MessageDetails *pDetails, map<string, Recipient> &destinations,
+	StatusUpdater *pUpdater)
+{
+	map<string, string> fieldValues;
+	set<SMTPMessage *> messages;
+	bool messageOk = true;
+
+	if ((pDetails == NULL) ||
+		(m_pProvider == NULL))
+	{
+		return false; 
+	}
+
+	if (destinations.empty() == true)
+	{
+		return true;
+	}
+	clog << destinations.size() << " recipients on domain " << m_domainLimits.m_domainName << endl;
+
+	Timer generationTimer;
+	SMTPMessage::DSNNotification dsnNotify = SMTPMessage::NEVER;
+
+	// Activate DSN ?
+	if (m_options.m_dsnNotify == "SUCCESS")
+	{
+		dsnNotify = SMTPMessage::SUCCESS;
+	}
+	else if (m_options.m_dsnNotify == "FAILURE")
+	{
+		dsnNotify = SMTPMessage::FAILURE;
+	}
+#ifdef DEBUG
+	clog << "SMTPSession::generateMessages: DSN notification " << m_options.m_dsnNotify << " " << dsnNotify << endl;
+#endif
+
+	// Can we send the same message to all recipients ?
+	if (pDetails->isRecipientPersonalized() == false)
+	{
+		// Yes, we can !
+		map<string, Recipient>::iterator destIter = destinations.begin();
+		if (destIter != destinations.end())
+		{
+			// Get non-recipient related (hopefully) custom fields from the first recipient
+			fieldValues = destIter->second.m_customFields;
+		}
+#ifdef DEBUG
+		clog << "SMTPSession::generateMessages: one message for all recipients" << endl;
+#endif
+
+		SMTPMessage *pMessage = m_pProvider->newMessage(fieldValues, pDetails,
+			dsnNotify, false, m_options.m_msgIdSuffix, m_options.m_complaints);
+		messages.insert(pMessage);
+
+		// Queue the message
+		if (queueMessage(pMessage, domainAuth,
+			destinations, pUpdater, false) == false)
+		{
+			messageOk = false;
+		}
+	}
+	else
+	{
+		// Each destination requires its own message unfortunately
+		for (map<string, Recipient>::iterator destIter = destinations.begin();
+			destIter != destinations.end(); ++destIter)
+		{
+			map<string, Recipient> recipients;
+			string name(destIter->second.m_name);
+			string emailAddress(destIter->second.m_emailAddress);
+
+			// Fields should be substituted with these values
+			fieldValues["Name"] = name;
+			fieldValues["emailaddress"] = emailAddress;
+			fieldValues["recipientId"] = MessageDetails::encodeRecipientId(destIter->second.m_id);
+			for (map<string, string>::iterator customIter = destIter->second.m_customFields.begin();
+				customIter != destIter->second.m_customFields.end(); ++customIter)
+			{
+				fieldValues[customIter->first] = customIter->second;
+#ifdef DEBUG
+				clog << "SMTPSession::generateMessages: field " << customIter->first << "=" << customIter->second << endl;
+#endif
+			}
+
+			recipients[emailAddress] = destIter->second;
+#ifdef DEBUG
+			clog << "SMTPSession::generateMessages: message specific to " << emailAddress << endl;
+#endif
+
+			SMTPMessage *pMessage = m_pProvider->newMessage(fieldValues, pDetails,
+				dsnNotify, false, m_options.m_msgIdSuffix, m_options.m_complaints);
+			messages.insert(pMessage);
+
+			// Queue the message
+			// FIXME: it might not be a good idea to queue too many messages, especially if content is huge
+			if (queueMessage(pMessage, domainAuth,
+				recipients, pUpdater, true) == false)
+			{
+				messageOk = false;
+			}
+		}
+	}
+	clog << "Queued " << messages.size() << " messages (" << m_msgsDataSize
+		<< " signed bytes) for domain " << m_domainLimits.m_domainName
+		<< " in " << generationTimer.stop() / 1000 << " seconds" << endl;
+
+	generationTimer.start();
+
+	// Force a send
+	if ((m_msgsDataSize == 0) ||
+		(dispatchMessages(pUpdater, true) == false))
+	{
+		messageOk = false;
+	}
+
+	clog << "Dispatched " << messages.size() << " messages to " << m_domainLimits.m_domainName
+		<< " in " << generationTimer.stop() / 1000 << " seconds" << endl;
+
+	generationTimer.start();
+
+	// Delete all messages
+	for (set<SMTPMessage *>::const_iterator msgIter = messages.begin();
+		msgIter != messages.end(); ++msgIter)
+	{
+		SMTPMessage *pMsg = (*msgIter);
+
+#ifdef DEBUG
+		if ((messageOk == false) &&
+			(m_pProvider->isInternalError(m_errorNum) == true))
+		{
+			clog << "SMTPSession::generateMessages: SMTP provider failed on below message" << endl
+				<< dumpMessage(pMsg, "", "") << endl;
+		}
+#endif
+		if (m_options.m_dumpFileBaseName.empty() == false)
+		{
+			pMsg->dumpToFile(m_options.m_dumpFileBaseName);
+		}
+		delete pMsg;
+	}
+
+	clog << "Deleted messages in " << generationTimer.stop() / 1000 << " seconds" << endl;
+
+	return messageOk;
 }
 
 string SMTPSession::dumpMessage(SMTPMessage *pMsg,
