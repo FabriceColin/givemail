@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2014 Fabrice Colin
+ *  Copyright 2009-2020 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -35,22 +35,18 @@ class Substitute
 			bool escapeEntities);
 		virtual ~Substitute();
 
-		/// Finds the location of fields.
-		virtual void findFields(void);
+		/// Returns whether there are fields to substitute in the content.
+		virtual bool hasFields(void) const = 0;
 
-		/// Return whether there are fields to substitute in the content.
-		virtual bool hasFields(void) const;
+		/// Returns whether the given field name is to be substituted.
+		virtual bool hasField(const std::string &fieldName) const = 0;
 
-		/// Return whether the given field name is to be substituted.
-		virtual bool hasField(const std::string &fieldName) const;
-
-		/// Substitute fields, links and images if applicable.
+		/// Substitutes fields, links and images if applicable.
 		virtual void substitute(const std::map<std::string, std::string> &fieldValues,
-			std::string &content);
+			std::string &content) = 0;
 
 	protected:
 		std::string m_contentTemplate;
-		std::map<std::string::size_type, std::string> m_fieldPos;
 		bool m_escapeEntities;
 
 	private:
@@ -68,16 +64,17 @@ class CTemplateSubstitute : public Substitute
 			bool escapeEntities);
 		virtual ~CTemplateSubstitute();
 
-		/// Finds the location of fields.
-		virtual void findFields(void);
-
-		/// Return whether there are fields to substitute in the content.
+		/// Returns whether there are fields to substitute in the content.
 		virtual bool hasFields(void) const;
 
-		/// Return whether the given field name is to be substituted.
+		/// Returns whether the given field name is to be substituted.
+		static bool hasField(const std::string &contentTemplate,
+			const std::string &fieldName);
+
+		/// Returns whether the given field name is to be substituted.
 		bool hasField(const std::string &fieldName) const;
 
-		/// CTemplateSubstitute fields, links and images if applicable.
+		/// Substitutes fields, links and images if applicable.
 		void substitute(const std::map<std::string, std::string> &fieldValues,
 			std::string &content);
 

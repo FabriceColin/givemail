@@ -22,47 +22,11 @@
 
 #include "Substitute.h"
 
-#define MAX_FIELD_LENGTH	32
-
 using std::clog;
 using std::endl;
 using std::map;
-using std::set;
 using std::string;
 using namespace ctemplate;
-
-/// Escape common HTML entities.
-static string escapeHtmlEntities(const string &recipientsList)
-{
-	string recipientsString(recipientsList);
-
-	string::size_type pos = recipientsString.find_first_of("\"<>");
-	while (pos != string::npos)
-	{
-		char thisChar = recipientsString[pos];
-		string rep;
-
-		if (thisChar == '\"')
-		{
-			rep = "&quot;";
-		}
-		else if (thisChar == '<')
-		{
-			rep = "&lt;";
-		}
-		else if (thisChar == '>')
-		{
-			rep = "&gt;";
-		}
-
-		recipientsString.replace(pos, 1, rep.c_str());
-
-		// Next
-		pos = recipientsString.find_first_of("\"<>", pos + 1);
-	}
-
-	return recipientsString;
-}
 
 Substitute::Substitute(const string &dictionaryId,
 	const string &contentTemplate, bool escapeEntities) :
@@ -75,117 +39,6 @@ Substitute::~Substitute()
 {
 }
 
-void Substitute::findFields(void)
-{
-	if (m_contentTemplate.empty() == true)
-	{
-		return;
-	}
-
-	string::size_type currentPos = 0;
-
-	// Find all possible custom fields
-	string::size_type fieldPos = m_contentTemplate.find("{");
-	while (fieldPos != string::npos)
-	{
-		string::size_type endFieldPos = m_contentTemplate.find("}", fieldPos);
-
-		if ((endFieldPos != string::npos) &&
-			(endFieldPos - fieldPos + 1 <= MAX_FIELD_LENGTH))
-		{
-			string fieldName(m_contentTemplate.substr(fieldPos + 1, endFieldPos - fieldPos - 1));
-
-			m_fieldPos[fieldPos] = fieldName;
-#ifdef DEBUG
-			clog << "Substitute::findFields: found possible custom field " << fieldName << endl;
-#endif
-			// Move past this field
-			currentPos = fieldPos + fieldName.length();
-		}
-		else
-		{
-			currentPos = fieldPos + 1;
-		}
-
-		fieldPos = m_contentTemplate.find("{", currentPos);
-	}
-#ifdef DEBUG
-	clog << "Substitute::findFields: found " << m_fieldPos.size() << " fields" << endl;
-#endif
-}
-
-bool Substitute::hasFields(void) const
-{
-	return !m_fieldPos.empty();
-}
-
-bool Substitute::hasField(const string &fieldName) const
-{
-	for (map<string::size_type, string>::const_iterator posIter = m_fieldPos.begin();
-		posIter != m_fieldPos.end(); ++posIter)
-	{
-		if (fieldName == posIter->second)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-void Substitute::substitute(const map<string, string> &fieldValues,
-	string &content)
-{
-	string::size_type currentPos = 0;
-
-	if (m_fieldPos.empty() == true)
-	{
-		// Nothing to substitute
-		content = m_contentTemplate;
-		return;
-	}
-
-	// Go through the position, field name map
-	for (map<string::size_type, string>::const_iterator posIter = m_fieldPos.begin();
-		posIter != m_fieldPos.end(); ++posIter)
-	{
-		string fieldName(posIter->second);
-		string fieldValue;
-
-		// What's the value of this field ?
-		map<string, string>::const_iterator valueIter = fieldValues.find(fieldName);
-		if (valueIter != fieldValues.end())
-		{
-			fieldValue = valueIter->second;
-		}
-#ifdef DEBUG
-		else clog << "Substitute::substitute: no value for " << fieldName << endl;
-#endif
-
-		content += m_contentTemplate.substr(currentPos, posIter->first - currentPos);
-		if (fieldValue.empty() == false)
-		{
-			if (m_escapeEntities == true)
-			{
-				content += escapeHtmlEntities(fieldValue);
-			}
-			else
-			{
-				content += fieldValue;
-			}
-		}
-
-		// Move past this field
-		currentPos = posIter->first + fieldName.length() + 2;
-	}
-
-	// Add remainder
-	if (currentPos < m_contentTemplate.size())
-	{
-		content += m_contentTemplate.substr(currentPos);
-	}
-}
-
 CTemplateSubstitute::CTemplateSubstitute(const string &dictionaryId,
 	const string &contentTemplate, bool escapeEntities) :
 	Substitute(dictionaryId, contentTemplate, escapeEntities),
@@ -195,11 +48,6 @@ CTemplateSubstitute::CTemplateSubstitute(const string &dictionaryId,
 
 CTemplateSubstitute::~CTemplateSubstitute()
 {
-}
-
-void CTemplateSubstitute::findFields(void)
-{
-	// Nothing to do
 }
 
 bool CTemplateSubstitute::hasFields(void) const
@@ -217,9 +65,10 @@ bool CTemplateSubstitute::hasFields(void) const
 	return false;
 }
 
-bool CTemplateSubstitute::hasField(const string &fieldName) const
+bool CTemplateSubstitute::hasField(const string &contentTemplate,
+	const string &fieldName)
 {
-	string::size_type fieldPos = m_contentTemplate.find(string("{{") + fieldName);
+	string::size_type fieldPos = contentTemplate.find(string("{{") + fieldName);
 
 	// Run a quick check
 	if (fieldPos != string::npos)
@@ -228,6 +77,11 @@ bool CTemplateSubstitute::hasField(const string &fieldName) const
 	}
 
 	return false;
+}
+
+bool CTemplateSubstitute::hasField(const string &fieldName) const
+{
+	return hasField(m_contentTemplate, fieldName);
 }
 
 void CTemplateSubstitute::substitute(const map<string, string> &fieldValues,
