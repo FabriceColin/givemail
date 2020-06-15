@@ -117,12 +117,10 @@ class MessageDetails
 		std::string getEncoding(const std::string &contentType) const;
 
 		/// Gets a Substitute object for plain text content.
-		Substitute *getPlainSubstituteObj(const std::string &dictionaryId,
-			bool hasFields = true);
+		Substitute *getPlainSubstituteObj(const std::string &dictionaryId);
 
 		/// Gets a Substitute object for HTML content.
-		Substitute *getHtmlSubstituteObj(const std::string &dictionaryId,
-			bool hasFields = true);
+		Substitute *getHtmlSubstituteObj(const std::string &dictionaryId);
 
 		/// Substitutes short strings such as subject.
 		std::string substitute(const std::string &dictionaryId,
@@ -130,7 +128,7 @@ class MessageDetails
 			const std::map<std::string, std::string> &fieldValues);
 
 		/// Returns whether the message has to be personalized for each recipient.
-		bool isRecipientPersonalized(void) const;
+		bool isRecipientPersonalized(void);
  
 		/// Adds an attachment.
 		bool addAttachment(Attachment *pAttachment);
@@ -170,14 +168,15 @@ class MessageDetails
 		unsigned int m_version;
 		Substitute *m_pPlainSub;
 		Substitute *m_pHtmlSub;
-		bool m_isRecipientPersonalized;
 		std::vector<Attachment *> m_attachments;
 		unsigned int m_attachmentsCount;
 		unsigned int m_inlinePartsCount;
 
+		bool checkFields(const std::string &contentType);
+
 		Substitute *newSubstitute(const std::string &dictionaryId,
 			const std::string &contentTemplate,
-			bool hasFields, bool escapeEntities);
+			bool escapeEntities);
 
 	private:
 		MessageDetails(const MessageDetails &other);

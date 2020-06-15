@@ -201,10 +201,9 @@ MessageDetails::MessageDetails() :
 	m_charset("UTF-8"),
 	m_useXMailer(false),
 	m_isReply(false),
-	m_version(1),
+	m_version(2),
 	m_pPlainSub(NULL),
 	m_pHtmlSub(NULL),
-	m_isRecipientPersonalized(false),
 	m_attachmentsCount(0),
 	m_inlinePartsCount(0)
 {
@@ -331,25 +330,23 @@ string MessageDetails::createMessageId(const string &suffix, bool isReplyId)
 	return messageId;
 }
 
-Substitute *MessageDetails::getPlainSubstituteObj(const string &dictionaryId,
-	bool hasFields)
+Substitute *MessageDetails::getPlainSubstituteObj(const string &dictionaryId)
 {
 	if (m_pPlainSub == NULL)
 	{
 		m_pPlainSub = newSubstitute(dictionaryId,
-			getContent("text/plain"), hasFields, false);
+			getContent("text/plain"), false);
 	}
 
 	return m_pPlainSub;
 }
 
-Substitute *MessageDetails::getHtmlSubstituteObj(const string &dictionaryId,
-	bool hasFields)
+Substitute *MessageDetails::getHtmlSubstituteObj(const string &dictionaryId)
 {
 	if (m_pHtmlSub == NULL)
 	{
 		m_pHtmlSub = newSubstitute(dictionaryId,
-			getContent("/html"), hasFields, true);
+			getContent("/html"), true);
 	}
 
 	return m_pHtmlSub;
@@ -358,25 +355,11 @@ Substitute *MessageDetails::getHtmlSubstituteObj(const string &dictionaryId,
 string MessageDetails::substitute(const string &dictionaryId,
 	const string &content, const map<string, string> &fieldValues)
 {
-	Substitute *pSub = NULL;
+	// m_version 1 is obsolete
+	Substitute *pSub = new CTemplateSubstitute(dictionaryId,
+		content, false);
 	string subContent;
 
-#ifdef DEBUG
-	clog << "MessageDetails::substitute: version " << m_version
-		<< " ID " << dictionaryId << endl;
-#endif
-	if (m_version >= 2)
-	{
-		pSub = new CTemplateSubstitute(dictionaryId,
-			content, false);
-	}
-	else
-	{
-		pSub = new Substitute(dictionaryId,
-			content, false);
-	}
-
-	pSub->findFields();
 	pSub->substitute(fieldValues, subContent);
 
 	delete pSub;
@@ -384,9 +367,15 @@ string MessageDetails::substitute(const string &dictionaryId,
 	return subContent;
 }
 
-bool MessageDetails::isRecipientPersonalized(void) const
+bool MessageDetails::isRecipientPersonalized(void)
 {
-	return m_isRecipientPersonalized;
+	if ((checkFields("text/plain") == true) ||
+		(checkFields("/html") == true))
+	{
+		return true;
+	}
+
+	return false;
 }
 
 bool MessageDetails::addAttachment(Attachment *pAttachment)
@@ -630,40 +619,33 @@ string MessageDetails::getEncoding(const string &contentType) const
 	return "";
 }
 
-Substitute *MessageDetails::newSubstitute(const string &dictionaryId,
-	const string &contentTemplate,
-	bool hasFields, bool escapeEntities)
+bool MessageDetails::checkFields(const string &contentType)
 {
-	Substitute *pSub = NULL;
+	string content(getContent(contentType));
 
+	// Does content have any recipient-specific field?
+	if ((CTemplateSubstitute::hasField(content, "Name") == true) ||
+		(CTemplateSubstitute::hasField(content, "emailaddress") == true) ||
+		(CTemplateSubstitute::hasField(content, "recipientId") == true))
+	{
 #ifdef DEBUG
-	clog << "MessageDetails::newSubstitute: version " << m_version
-		<< " ID " << dictionaryId << endl;
+		clog << "MessageDetails::checkFields: content type " << contentType << " is personalized" << endl;
 #endif
-	if (m_version >= 2)
-	{
-		pSub = new CTemplateSubstitute(dictionaryId,
-			contentTemplate, escapeEntities);
+		return true;
 	}
-	else
-	{
-		pSub = new Substitute(dictionaryId,
-			contentTemplate, escapeEntities);
-	}
+#ifdef DEBUG
+	clog << "MessageDetails::checkFields: content type " << contentType << " (" << content.size() <<  " bytes) is not personalized" << endl;
+#endif
 
-	pSub->findFields();
+	return false;
+}
 
-	// Does it have any recipient-specific field ?
-	if (hasFields == false)
-	{
-		m_isRecipientPersonalized = false;
-	}
-	else if ((pSub->hasField("Name") == true) ||
-		(pSub->hasField("emailaddress") == true) ||
-		(pSub->hasField("recipientId") == true))
-	{
-		m_isRecipientPersonalized = true;
-	}
+Substitute *MessageDetails::newSubstitute(const string &dictionaryId,
+	const string &contentTemplate, bool escapeEntities)
+{
+	// m_version 1 is obsolete
+	Substitute *pSub = new CTemplateSubstitute(dictionaryId,
+		contentTemplate, escapeEntities);
 
 	return pSub;
 }
