@@ -179,7 +179,7 @@ static void eventCallback(smtp_session_t session, int eventNum, void *pArg, ...)
 	va_end(alist);
 }
 
-string g_attachmentLine;
+string g_attachmentData;
 string g_extraLine("\r\n");
 string g_startMixed("Content-Type: multipart/mixed;\r\n\tboundary=\"----=_NextMixedPart\"\r\n\r\nThis is a message in multipart MIME format. Your mail client should not be displaying this. Consider upgrading your mail client to view this message correctly.\r\n\r\n------=_NextMixedPart\r\n");
 string g_startAlt("Content-Type: multipart/alternative;\r\n\tboundary=\"----=_NextAltPart\"\r\n\r\n\r\n------=_NextAltPart\r\n");
@@ -282,7 +282,7 @@ const char *messageDataCallback(void **ppBuf, int *pLen, void *pArg)
 			pMsg->m_stage = LibESMTPMessage::END_PLAIN;
 		case LibESMTPMessage::END_PLAIN:
 			if ((pMsg->m_plainContent.empty() == false) &&
-				(pMsg->m_plainContent[pMsg->m_htmlContent.length()] != '\n'))
+				(pMsg->m_plainContent[pMsg->m_plainContent.length()] != '\n'))
 			{
 				// Insert an extra line only if something else follows
 				if ((pMsg->m_htmlContent.empty() == false) ||
@@ -334,9 +334,15 @@ const char *messageDataCallback(void **ppBuf, int *pLen, void *pArg)
 			if ((pMsg->m_htmlContent.empty() == false) &&
 				(pMsg->m_htmlContent[pMsg->m_htmlContent.length()] != '\n'))
 			{
-				*pLen = (int)g_extraLine.length();
-				pBuf = g_extraLine.c_str();
-				break;
+				// Insert an extra line only if something else follows
+				if ((pMsg->requiresAlternativeParts() == true) ||
+					(pMsg->requiresRelatedParts() == true) ||
+					(pMsg->requiresMixedParts() == true))
+				{
+					*pLen = (int)g_extraLine.length();
+					pBuf = g_extraLine.c_str();
+					break;
+				}
 			}
 			pMsg->m_stage = LibESMTPMessage::START_INLINE;
 		case LibESMTPMessage::START_INLINE:
@@ -377,9 +383,9 @@ const char *messageDataCallback(void **ppBuf, int *pLen, void *pArg)
 #endif
 					// FIXME: if we return the line as is, libesmtp will for some reason
 					// ignore the length and go all the way to the terminating NULL
-					g_attachmentLine = string(pEncodedData, (string::size_type)encodedLen);
-					*pLen = (int)g_attachmentLine.length();
-					pBuf = g_attachmentLine.c_str();
+					g_attachmentData = string(pEncodedData, (string::size_type)encodedLen);
+					*pLen = (int)g_attachmentData.length();
+					pBuf = g_attachmentData.c_str();
 					break;
 				}
 			}
@@ -457,8 +463,9 @@ const char *messageDataCallback(void **ppBuf, int *pLen, void *pArg)
 				string headers(pMsg->getAttachmentHeaders(pMsg->m_currentAttachment, false));
 				if (headers.empty() == false)
 				{
-					*pLen = (int)headers.length();
-					pBuf = headers.c_str();
+					g_attachmentData = headers;
+					*pLen = (int)g_attachmentData.length();
+					pBuf = g_attachmentData.c_str();
 #ifdef DEBUG
 					clog << "LibESMTPProvider: got headers for attachment " << pMsg->m_currentAttachment << endl;
 #endif
@@ -481,9 +488,9 @@ const char *messageDataCallback(void **ppBuf, int *pLen, void *pArg)
 #endif
 					// FIXME: if we return the line as is, libesmtp will for some reason
 					// ignore the length and go all the way to the terminating NULL
-					g_attachmentLine = string(pEncodedData, (string::size_type)encodedLen);
-					*pLen = (int)g_attachmentLine.length();
-					pBuf = g_attachmentLine.c_str();
+					g_attachmentData = string(pEncodedData, (string::size_type)encodedLen);
+					*pLen = (int)g_attachmentData.length();
+					pBuf = g_attachmentData.c_str();
 					break;
 				}
 			}
