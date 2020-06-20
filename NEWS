@@ -1,8 +1,9 @@
-2020/06/xx 1.30
+2020/06/20 1.30
 * General
   Obsoleted DomainKeys in favour of DKIM with opendkim.
   The GIVEMAIL_VERIFY_SIGNATURES environment variable forces verifications.
   A public key may be provided via the configuration file.
+  Miscellaneous fixes.
 
 2015/08/02 1.20
 * General
