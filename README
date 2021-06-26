@@ -12,20 +12,27 @@ Dependencies
 
 The following packages are required:
 
-libopendkim			>= 2.10.0	http://opendkim.org/
+autotools and g++ toolchain
 ctemplate			>= 0.95		http://code.google.com/p/google-ctemplate/
-MySQL				>= 4.0		http://www.mysql.com/
-mod_fcgid			>= 2.2		http://fastcgi.coremail.cn/
-OpenSSL				>= 0.9.7	http://www.openssl.org/
 cyrus-sasl					https://www.cyrusimap.org/sasl/
 doxygen						http://www.stack.nl/~dimitri/doxygen/index.html
+fcgi						http://www.fastcgi.com/
 help2man					http://www.gnu.org/software/help2man
-autotools and g++ toolchain
+libopendkim			>= 2.10.0	http://opendkim.org/
+libxml2						http://xmlsoft.org/
+mod_fcgid			>= 2.2		http://fastcgi.coremail.cn/
+MySQL				>= 4.0		http://www.mysql.com/
+OpenSSL				>= 0.9.7	http://www.openssl.org/
 
 as well as one of:
 
-libetpan			>= 1.9.4	http://www.etpan.org/
 libesmtp			>= 1.0.6	http://www.stafford.uklinux.net/libesmtp/
+libetpan			>= 1.9.4	http://www.etpan.org/
+
+and one of:
+
+curl						https://curl.se/
+neon						https://notroj.github.io/neon/
 
 Building Givemail
 -----------------
