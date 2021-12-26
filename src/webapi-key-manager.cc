@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  *  Copyright 2008 Global Sign In
- *  Copyright 2009-2014 Fabrice Colin
+ *  Copyright 2009-2021 Fabrice Colin
  * 
  *  This code is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -74,7 +74,7 @@ static void catchSignals(int sigNum)
 }
 
 /// Get some random bytes.
-static char *getRandomBytes(unsigned long bytesCount)
+static char *getRandomBytes(off_t bytesCount)
 {
 	char *pBuffer = NULL;
 	off_t bytesRead = 0;
@@ -221,7 +221,7 @@ int main(int argc, char **argv)
 		key.m_creationTime = time(NULL);
 		key.m_expiryTime = key.m_creationTime + (daysCount * 24 * 3600);
 
-		char *pRandomKey = getRandomBytes(keyLength);
+		char *pRandomKey = getRandomBytes((off_t)keyLength);
 		if (pRandomKey != NULL)
 		{
 			char *pEncodedKey = Base64::encode(pRandomKey, keyLength);
