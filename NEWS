@@ -1,3 +1,7 @@
+2025/01/27 1.31
+* General
+  Caught up with changes to MySQL 8.0.
+
 2020/06/20 1.30
 * General
   Obsoleted DomainKeys in favour of DKIM with opendkim.

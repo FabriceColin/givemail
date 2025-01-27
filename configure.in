@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.50)
-AC_INIT(givemail, 1.30)
+AC_INIT(givemail, 1.31)
 
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
