@@ -2,7 +2,7 @@ Givemail
 https://github.com/FabriceColin/givemail
  previously hosted at https://code.google.com/p/givemail/
 
-Copyright 2009-2021 Fabrice Colin
+Copyright 2009-2025 Fabrice Colin
 Copyright 2008 Global Sign In
 Base64.cc includes code Copyright 2005 Nokia Corporation.
 QuotedPrintable.cc includes code Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007 Free Software Foundation, Inc.
@@ -21,7 +21,7 @@ help2man					http://www.gnu.org/software/help2man
 libopendkim			>= 2.10.0	http://opendkim.org/
 libxml2						http://xmlsoft.org/
 mod_fcgid			>= 2.2		http://fastcgi.coremail.cn/
-MySQL				>= 4.0		http://www.mysql.com/
+MySQL				>= 8.0		http://www.mysql.com/
 OpenSSL				>= 0.9.7	http://www.openssl.org/
 
 as well as one of:
@@ -65,7 +65,6 @@ or generate a source tarball of the current code, and build RPMs with :
    $ make dist
    $ rpmbuild -ts givemail-version_number.tar.gz
    $ rpmbuild --rebuild /path/to/rpmtree/SRPMS/givemail-version_number.distro.src.rpm
-   Append "--with mysql4" to calls to rpmbuild if you are on RHEL or a derivative (eg Centos).
    Append "--with debug" to enable DEBUG mode, and "--with fastcgi" to build the WebAPI.
 
 If upgrading from an older version, make sure the givemail service is stopped and your configuration is backed up.

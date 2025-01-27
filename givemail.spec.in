@@ -13,18 +13,13 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 %if 0%{?_with_libetpan:1}
 Requires:	libetpan >= 1.9.4
 Requires:	cyrus-sasl-lib, cyrus-sasl-md5, cyrus-sasl-plain
-BuildRequires:	libetpan-devel >= 1.9.4
+BuildRequires:	cyrus-sasl-devel, libetpan-devel >= 1.9.4
 %else
 Requires:	libesmtp >= 1.0.6
 BuildRequires:	libesmtp-devel >= 1.0.6
 %endif
-%if 0%{?_with_mysql4:1}
-Requires:	MySQL-shared >= 4.0
-BuildRequires:	MySQL-devel >= 4.0
-%else
-Requires:	mysql-libs >= 5.0
-BuildRequires:	mysql-devel >= 5.0
-%endif
+Requires:	mysql-libs >= 8.0
+BuildRequires:	mysql-devel >= 8.0
 %if %has_dynamic_libresolv
 Requires:	%{_libdir}/libresolv.so
 %endif
@@ -48,11 +43,7 @@ Requires:	%{name} = %{version}
 Requires:	mod_fcgid
 Requires:	openssl >= 0.9.7
 Requires:	SmartClient >= 7.0
-%if 0%{?_with_mysql4:1}
-Requires:	curl
-%else
 Requires:	libcurl
-%endif
 
 %description webapi
 This package includes the GiveMail WebAPI.

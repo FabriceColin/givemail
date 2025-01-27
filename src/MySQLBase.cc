@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009-2020 Fabrice Colin
+ *  Copyright 2009-2025 Fabrice Colin
  *
  *  The MySQL FLOSS License Exception allows us to license this code under
  *  the LGPL even though MySQL is under the GPL.
@@ -360,7 +360,7 @@ MySQLResults::MySQLResults(const string &statementId,
 		return;
 	}
 
-	my_bool is_not_null = 0;
+	bool isNotNull = false;
 
 	m_pBindValues = new MYSQL_BIND[m_nColumns];
 	m_pValuesLength = new unsigned long[m_nColumns];
@@ -428,7 +428,7 @@ MySQLResults::MySQLResults(const string &statementId,
 				<< " has unknown type for column " << colIndex << endl;
 		}
 
-		m_pBindValues[colIndex].is_null = &is_not_null;
+		m_pBindValues[colIndex].is_null = &isNotNull;
 		m_pBindValues[colIndex].length = &m_pValuesLength[colIndex];
 		m_pBindValues[colIndex].error = NULL;
 	}
@@ -629,7 +629,7 @@ void MySQLBase::open(void)
 	}
 
 	// Enable automatic reconnections
-	my_bool reconnect = 1;
+	bool reconnect = true;
 	if (mysql_options(&m_database, MYSQL_OPT_RECONNECT, (const char*)&reconnect) != 0)
 	{
 		clog << "Couldn't enable reconnections" << endl;
@@ -1111,7 +1111,7 @@ SQLResults *MySQLBase::executePreparedStatement(const string &statementId,
 	MYSQL_BIND bindValues[values.size()];
 	unsigned long valuesLength[values.size()];
 	unsigned int paramIndex = 0;
-	my_bool is_not_null = 0;
+	bool isNotNull = false;
 
 	memset(bindValues, 0, sizeof(bindValues));
 	memset(valuesLength, 0, sizeof(valuesLength));
@@ -1172,7 +1172,7 @@ SQLResults *MySQLBase::executePreparedStatement(const string &statementId,
 		}
 
 		bindValues[paramIndex].buffer_type = type;
-		bindValues[paramIndex].is_null = &is_not_null;
+		bindValues[paramIndex].is_null = &isNotNull;
 		bindValues[paramIndex].length = &valuesLength[paramIndex];
 		bindValues[paramIndex].error = NULL;
 	}
